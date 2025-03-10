@@ -51,6 +51,9 @@ sigmoid :: proc (x: f32) -> f32 {
 }
 
 generate_next_grid_state :: proc (grid: Grid, kernel: Grid, dt, mu, sigma: f32) {
+    values := grid_new(grid.width, grid.height)
+    defer delete(values.mat)
+
     for h in 0..<grid.height {
         for w in 0 ..<grid.width {
             potential := get_cell_potential({w, h}, grid, kernel)
@@ -58,7 +61,14 @@ generate_next_grid_state :: proc (grid: Grid, kernel: Grid, dt, mu, sigma: f32) 
             val := get_grid(grid, i32(w), i32(h))
             new_val := val + dt * growth
             new_val_clipped: f32 = min(max(new_val, 0), 1)
-            set_grid(grid, i32(w), i32(h), new_val_clipped)
+            set_grid(values, i32(w), i32(h), new_val_clipped)
+        }
+    }
+
+    for h in 0..<grid.height {
+        for w in 0 ..<grid.width {
+            val := get_grid(values, i32(w), i32(h))
+            set_grid(grid, i32(w), i32(h), val)
         }
     }
 }
