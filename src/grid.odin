@@ -50,11 +50,11 @@ sigmoid :: proc (x: f32) -> f32 {
     return math.pow(math.e, x) / (1 + math.pow(math.e, x))
 }
 
-generate_next_grid_state :: proc (grid: Grid, kernel: Grid, dt: f32) {
+generate_next_grid_state :: proc (grid: Grid, kernel: Grid, dt, mu, sigma: f32) {
     for h in 0..<grid.height {
         for w in 0 ..<grid.width {
             potential := get_cell_potential({w, h}, grid, kernel)
-            growth := growth_mapping_polynomial(potential, 0.35, 0.07)
+            growth := growth_mapping_polynomial(potential, mu, sigma)
             val := get_grid(grid, i32(w), i32(h))
             new_val := val + dt * growth
             new_val_clipped: f32 = min(max(new_val, 0), 1)

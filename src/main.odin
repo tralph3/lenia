@@ -27,10 +27,17 @@ calculate_camera_position :: proc (camera: ^rl.Camera2D) {
 }
 
 main :: proc () {
-    grid := generate_main_grid_random(100, 100)
+    KERNEL_RADIUS :: 4
+    KERNEL_PEAKS :: []f32 {0.3, 0.7, 0.2, 0, 0.9}
+    MAIN_GRID_SIZE :: 100
+    TIME_STEP: f32 : 100
+    MU :: 0.35
+    SIGMA :: 0.07
+
+    grid := generate_main_grid_random(MAIN_GRID_SIZE, MAIN_GRID_SIZE)
     defer delete(grid.mat)
 
-    kernel := generate_kernel(4, {0.3, 0.7, 0.2, 0, 0.9})
+    kernel := generate_kernel(KERNEL_RADIUS, KERNEL_PEAKS)
     defer delete(kernel.mat)
 
     camera := rl.Camera2D {
@@ -53,10 +60,11 @@ main :: proc () {
         if rl.IsKeyPressed(.C) {
             run = !run
         } else if rl.IsKeyPressed(.G) || run {
-            dt += rl.GetFrameTime()
-            generate_next_grid_state(grid, kernel, dt)
+            dt += 1 / TIME_STEP
+            generate_next_grid_state(grid, kernel, dt, MU, SIGMA)
         } else if rl.IsKeyPressed(.R) {
             delete(grid.mat)
+            dt = 0
             grid = generate_main_grid_random(grid.width, grid.height)
         }
 
