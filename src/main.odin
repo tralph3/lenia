@@ -5,6 +5,7 @@ import rl "vendor:raylib"
 import "core:math"
 import "core:thread"
 import "core:os"
+import "core:mem"
 
 calculate_camera_position :: proc (camera: ^rl.Camera2D) {
     if (rl.IsMouseButtonDown(.LEFT)) {
@@ -24,17 +25,22 @@ calculate_camera_position :: proc (camera: ^rl.Camera2D) {
             scale_factor = 1 / scale_factor
         }
 
-        camera.zoom = rl.Clamp(camera.zoom * scale_factor, 0.125, 64.0);
+        camera.zoom = rl.Clamp(camera.zoom * scale_factor, 0.125, 128.0);
     }
+}
+
+button_bounds :: proc (index: int) -> rl.Rectangle {
+    button_spacing: f32 = 60
+    return { 10, 10 + button_spacing * f32(index), 100, 40}
 }
 
 main :: proc () {
     KERNEL_RADIUS :: 5
-    KERNEL_PEAKS :: []f32 {0.2, 0.8, 0.57}
+    KERNEL_PEAKS :: []f32 {0.8, 0.8, 0.57}
     MAIN_GRID_SIZE :: 300
     TIME_STEP: f32 : 100
-    MU :: 0.35
-    SIGMA :: 0.07
+    MU :: 0.3
+    SIGMA :: 0.03
 
     thread_pool := thread.Pool {}
     thread.pool_init(&thread_pool, context.allocator, os.processor_core_count())
@@ -47,7 +53,7 @@ main :: proc () {
     kernel := generate_kernel(KERNEL_RADIUS, KERNEL_PEAKS)
     defer delete(kernel.mat)
 
-    cell_size: i32 = 10
+    cell_size: i32 = 1
     cell_gap: i32 = 0
 
     rl.SetConfigFlags({.FULLSCREEN_MODE})
@@ -60,19 +66,37 @@ main :: proc () {
         zoom = 1
     }
 
+    tmp_render_texture := rl.LoadRenderTexture(main_grid.width, main_grid.height)
+    tmp_image := rl.LoadImageFromTexture(tmp_render_texture.texture)
+    rl.ImageFormat(&tmp_image, .UNCOMPRESSED_GRAYSCALE)
+    render_texture := rl.LoadTextureFromImage(tmp_image)
+
+    rl.UnloadRenderTexture(tmp_render_texture)
+    rl.UnloadImage(tmp_image)
+
     dt: f32 = 0
     run: bool = false
     swap_grid: bool = false
 
     grid_to_render := main_grid
+
+    render_buffer := make([]u8, main_grid.width * main_grid.height)
+
     for !rl.WindowShouldClose() {
         swap_grid = !swap_grid
 
         rl.BeginDrawing()
 
-        if rl.IsKeyPressed(.C) {
+        if rl.IsKeyPressed(.C) || bool(rl.GuiToggle(button_bounds(0), "Run", &run)) {
             run = !run
-        } else if rl.IsKeyPressed(.G) || run {
+        } else if rl.IsKeyPressed(.R) || rl.GuiButton(button_bounds(2), "Reset simulation") {
+            run = false
+            delete(main_grid.mat)
+            delete(back_grid.mat)
+            dt = 0
+            main_grid, back_grid = generate_main_grid_random(main_grid.width, main_grid.height)
+            grid_to_render = main_grid
+        } else if rl.IsKeyPressed(.G) || run || rl.GuiButton(button_bounds(1), "Simulation step") {
             dt += 1 / TIME_STEP
             if !swap_grid {
                 update_grid_state(&thread_pool, main_grid, back_grid, kernel, dt, MU, SIGMA)
@@ -81,25 +105,21 @@ main :: proc () {
                 update_grid_state(&thread_pool, back_grid, main_grid, kernel, dt, MU, SIGMA)
                 grid_to_render = main_grid
             }
-
-        } else if rl.IsKeyPressed(.R) {
-            delete(main_grid.mat)
-            delete(back_grid.mat)
-            dt = 0
-            main_grid, back_grid = generate_main_grid_random(main_grid.width, main_grid.height)
         }
 
         calculate_camera_position(&camera)
         rl.ClearBackground(rl.BLACK)
 
-        rl.BeginMode2D(camera)
-        for h in 0..<main_grid.height {
-            for w in 0..<main_grid.width {
-                elem := get_grid(grid_to_render, w, h)
-
-                rl.DrawRectangle(i32(w * (cell_size + cell_gap)), i32(h * (cell_size + cell_gap)), i32(cell_size), i32(cell_size), rl.Fade(rl.RED, elem))
-            }
+        for val, index in grid_to_render.mat {
+            render_buffer[index] = u8(val * 255)
         }
+
+        data, _ := mem.slice_to_components(render_buffer)
+
+        rl.UpdateTexture(render_texture, data)
+
+        rl.BeginMode2D(camera)
+        rl.DrawTexture(render_texture, 0, 0, rl.BLUE)
         rl.EndMode2D()
 
         rl.DrawFPS(0,0)
