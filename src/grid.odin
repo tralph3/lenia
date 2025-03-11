@@ -89,7 +89,7 @@ update_cell_state_task :: proc (task: thread.Task) {
 }
 
 update_grid_state :: proc (thread_pool: ^thread.Pool, grid: Grid, back_grid: Grid, kernel: Grid, dt, mu, sigma: f32) {
-    cell_range: i32 = 100
+    cell_range: i32 = 40
     task_count: i32 = i32(len(grid.mat)) / cell_range
     remainder := i32(len(grid.mat)) - cell_range * task_count
 

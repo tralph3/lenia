@@ -36,11 +36,11 @@ button_bounds :: proc (index: int) -> rl.Rectangle {
 
 main :: proc () {
     KERNEL_RADIUS :: 5
-    KERNEL_PEAKS :: []f32 {0.8, 0.8, 0.57}
+    KERNEL_PEAKS :: []f32 {1, 1, 1, 1, 1, 1, 1, 1}
     MAIN_GRID_SIZE :: 300
-    TIME_STEP: f32 : 100
-    MU :: 0.3
-    SIGMA :: 0.03
+    TIME_STEP: f32 : 0.9
+    MU :: 0.35
+    SIGMA :: 0.07
 
     thread_pool := thread.Pool {}
     thread.pool_init(&thread_pool, context.allocator, os.processor_core_count())
@@ -93,16 +93,14 @@ main :: proc () {
             run = false
             delete(main_grid.mat)
             delete(back_grid.mat)
-            dt = 0
             main_grid, back_grid = generate_main_grid_random(main_grid.width, main_grid.height)
             grid_to_render = main_grid
         } else if rl.IsKeyPressed(.G) || run || rl.GuiButton(button_bounds(1), "Simulation step") {
-            dt += 1 / TIME_STEP
             if !swap_grid {
-                update_grid_state(&thread_pool, main_grid, back_grid, kernel, dt, MU, SIGMA)
+                update_grid_state(&thread_pool, main_grid, back_grid, kernel, TIME_STEP, MU, SIGMA)
                 grid_to_render = back_grid
             } else {
-                update_grid_state(&thread_pool, back_grid, main_grid, kernel, dt, MU, SIGMA)
+                update_grid_state(&thread_pool, back_grid, main_grid, kernel, TIME_STEP, MU, SIGMA)
                 grid_to_render = main_grid
             }
         }
