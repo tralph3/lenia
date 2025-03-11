@@ -2,13 +2,13 @@ package main
 
 import "core:math"
 
-generate_kernel :: proc (radius: u32, peaks: []f32, alpha: f32 = 4) -> Grid {
-    diameter := radius * 2 + 1  // ensure odd numbers to have a
-                                // central cell
+generate_kernel :: proc (radius: i32, peaks: []f32, alpha: f32 = 4) -> Grid {
+    diameter: i32 = radius * 2 + 1  // ensure odd numbers to have a
+                                    // central cell
 
     kernel := grid_new(diameter, diameter)
 
-    kernel_center: [2]u32 = {diameter / 2, diameter / 2}
+    kernel_center: [2]i32 = {diameter / 2, diameter / 2}
     max_distance := get_polar_distance({0, 0}, kernel_center)
     for h in 0..<diameter {
         for w in 0..<diameter {
