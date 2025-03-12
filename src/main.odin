@@ -6,6 +6,8 @@ import "core:math"
 import "core:thread"
 import "core:os"
 import "core:mem"
+import "core:time"
+import "core:c"
 
 calculate_camera_position :: proc (camera: ^rl.Camera2D) {
     if (rl.IsMouseButtonDown(.LEFT)) {
@@ -38,91 +40,102 @@ main :: proc () {
     KERNEL_RADIUS :: 5
     KERNEL_PEAKS :: []f32 {1, 1, 1, 1, 1, 1, 1, 1}
     MAIN_GRID_SIZE :: 300
-    TIME_STEP: f32 : 0.9
-    MU :: 0.35
-    SIGMA :: 0.07
+    TIME_STEP: c.float = 0.9
+    MU: c.float = 0.35
+    SIGMA: c.float = 0.07
+    ALPHA: c.float = 4.0
 
-    thread_pool := thread.Pool {}
-    thread.pool_init(&thread_pool, context.allocator, os.processor_core_count())
-    thread.pool_start(&thread_pool)
-
-    main_grid, back_grid := generate_main_grid_random(MAIN_GRID_SIZE, MAIN_GRID_SIZE)
-    defer delete(main_grid.mat)
-    defer delete(back_grid.mat)
-
-    kernel := generate_kernel(KERNEL_RADIUS, KERNEL_PEAKS)
-    defer delete(kernel.mat)
-
-    cell_size: i32 = 1
-    cell_gap: i32 = 0
-
-    rl.SetConfigFlags({.FULLSCREEN_MODE})
+    rl.SetConfigFlags({.FULLSCREEN_MODE, .WINDOW_RESIZABLE})
     rl.InitWindow(1920, 1080, "Lenia")
     rl.SetTargetFPS(60)
 
-    grid_render_size: [2]i32 = { main_grid.width * (cell_size + cell_gap) - cell_gap, main_grid.height * (cell_size + cell_gap) - cell_gap}
+    simulation_fps: f64 = 60
+
+    kernel := generate_kernel(KERNEL_RADIUS, KERNEL_PEAKS, ALPHA)
+    kernel_image := rl.GenImageColor(kernel.width, kernel.height, rl.WHITE)
+
+    for h in 0..<kernel.height {
+        for w in 0..<kernel.width {
+            kernel_val := get_grid(kernel, w, h)
+            rl.ImageDrawPixel(&kernel_image, w, h, { u8(kernel_val * 255), 0, 0, 255 })
+        }
+    }
+    kernel_tex := rl.LoadTextureFromImage(kernel_image)
+    rl.UnloadImage(kernel_image)
+
     camera := rl.Camera2D {
-        target = rl.Vector2 { f32(grid_render_size.x) / 2 - f32(rl.GetScreenWidth()) / 2, f32(grid_render_size.y) / 2 - f32(rl.GetScreenHeight()) / 2},
+        target = rl.Vector2 {
+            f32(MAIN_GRID_SIZE) / 2 - f32(rl.GetScreenWidth()) / 2,
+            f32(MAIN_GRID_SIZE) / 2 - f32(rl.GetScreenHeight()) / 2
+        },
         zoom = 1
     }
 
-    tmp_render_texture := rl.LoadRenderTexture(main_grid.width, main_grid.height)
-    tmp_image := rl.LoadImageFromTexture(tmp_render_texture.texture)
-    rl.ImageFormat(&tmp_image, .UNCOMPRESSED_GRAYSCALE)
-    render_texture := rl.LoadTextureFromImage(tmp_image)
-
-    rl.UnloadRenderTexture(tmp_render_texture)
-    rl.UnloadImage(tmp_image)
-
     dt: f32 = 0
     run: bool = false
-    swap_grid: bool = false
 
-    grid_to_render := main_grid
+    buffers: [2]rl.RenderTexture = {
+        rl.LoadRenderTexture(MAIN_GRID_SIZE, MAIN_GRID_SIZE),
+        rl.LoadRenderTexture(MAIN_GRID_SIZE, MAIN_GRID_SIZE),
+    }
 
-    render_buffer := make([]u8, main_grid.width * main_grid.height)
+    rl.SetTextureWrap(buffers[0].texture, .REPEAT)
+    rl.SetTextureWrap(buffers[1].texture, .REPEAT)
 
+    noise_image := rl.GenImagePerlinNoise(MAIN_GRID_SIZE, MAIN_GRID_SIZE, 0, 0, 5)
+    rl.UpdateTexture(buffers[0].texture, noise_image.data)
+    rl.UnloadImage(noise_image)
+
+    shader := rl.LoadShader(nil, "src/shader.fs")
+    resolution := rl.Vector2 { MAIN_GRID_SIZE, MAIN_GRID_SIZE }
+
+    resolution_loc := rl.GetShaderLocation(shader, "resolution")
+    rl.SetShaderValue(shader, resolution_loc, &resolution, .VEC2)
+
+    kernel_loc := rl.GetShaderLocation(shader, "kernel")
+
+    kernel_size := rl.Vector2 { c.float(kernel.width), c.float(kernel.height) }
+    kernel_size_loc := rl.GetShaderLocation(shader, "kernelSize")
+    rl.SetShaderValue(shader, kernel_size_loc, &kernel_size, .VEC2)
+
+    mu_loc := rl.GetShaderLocation(shader, "mu")
+    rl.SetShaderValue(shader, mu_loc, &MU, .FLOAT)
+
+    sigma_loc := rl.GetShaderLocation(shader, "sigma")
+    rl.SetShaderValue(shader, sigma_loc, &SIGMA, .FLOAT)
+
+    alpha_loc := rl.GetShaderLocation(shader, "alpha")
+    rl.SetShaderValue(shader, alpha_loc, &ALPHA, .FLOAT)
+
+    dt_loc := rl.GetShaderLocation(shader, "dt")
+    rl.SetShaderValue(shader, dt_loc, &TIME_STEP, .FLOAT)
+
+    buffer_index := 0
+
+    simulation_frame_time: f64 = 1 / simulation_fps
+    last_time := time.now()
     for !rl.WindowShouldClose() {
-        swap_grid = !swap_grid
+        calculate_camera_position(&camera)
 
         rl.BeginDrawing()
-
-        if rl.IsKeyPressed(.C) || bool(rl.GuiToggle(button_bounds(0), "Run", &run)) {
-            run = !run
-        } else if rl.IsKeyPressed(.R) || rl.GuiButton(button_bounds(2), "Reset simulation") {
-            run = false
-            delete(main_grid.mat)
-            delete(back_grid.mat)
-            main_grid, back_grid = generate_main_grid_random(main_grid.width, main_grid.height)
-            grid_to_render = main_grid
-        } else if rl.IsKeyPressed(.G) || run || rl.GuiButton(button_bounds(1), "Simulation step") {
-            if !swap_grid {
-                update_grid_state(&thread_pool, main_grid, back_grid, kernel, TIME_STEP, MU, SIGMA)
-                grid_to_render = back_grid
-            } else {
-                update_grid_state(&thread_pool, back_grid, main_grid, kernel, TIME_STEP, MU, SIGMA)
-                grid_to_render = main_grid
-            }
-        }
-
-        calculate_camera_position(&camera)
-        rl.ClearBackground(rl.BLACK)
-
-        for val, index in grid_to_render.mat {
-            render_buffer[index] = u8(val * 255)
-        }
-
-        data, _ := mem.slice_to_components(render_buffer)
-
-        rl.UpdateTexture(render_texture, data)
-
-        rl.BeginMode2D(camera)
-        rl.DrawTexture(render_texture, 0, 0, rl.BLUE)
-        rl.EndMode2D()
-
-        rl.DrawFPS(0,0)
-
+            rl.ClearBackground(rl.BLACK)
+            rl.BeginMode2D(camera)
+                rl.DrawTexture(buffers[buffer_index].texture, 0, 0, rl.WHITE)
+            rl.EndMode2D()
+            rl.DrawFPS(0,0)
         rl.EndDrawing()
+
+        if (time.duration_seconds(time.since(last_time)) >= simulation_frame_time) {
+            rl.BeginTextureMode(buffers[1 - buffer_index])
+                rl.BeginShaderMode(shader)
+                    rl.SetShaderValueTexture(shader, kernel_loc, kernel_tex)
+                    rl.DrawTextureRec(buffers[buffer_index].texture, { 0, 0, MAIN_GRID_SIZE, -MAIN_GRID_SIZE }, { 0, 0 }, rl.WHITE)
+                rl.EndShaderMode()
+            rl.EndTextureMode()
+
+            buffer_index = 1 - buffer_index
+            last_time = time.now()
+        }
     }
 
     rl.CloseWindow()
