@@ -1,8 +1,9 @@
 package main
 
 import "core:math"
+import "core:fmt"
 
-generate_kernel :: proc (radius: i32, peaks: []f32, alpha: f32 = 4) -> Grid {
+generate_kernel :: proc (radius: i32, peaks: [dynamic]f32, alpha: f32 = 4) -> Grid {
     diameter: i32 = radius * 2 + 1  // ensure odd numbers to have a
                                     // central cell
 
@@ -14,7 +15,7 @@ generate_kernel :: proc (radius: i32, peaks: []f32, alpha: f32 = 4) -> Grid {
         for w in 0..<diameter {
             polar_distance := min(1, get_polar_distance({w, h}, kernel_center) / max_distance)
             shell_value := kernel_shell(polar_distance, peaks, alpha)
-            set_grid(kernel, i32(w), i32(h), shell_value)
+            set_grid(kernel, i32(w), i32(h), 1)
         }
     }
 
@@ -31,7 +32,7 @@ kernel_core :: proc (polar_distance: f32, alpha: f32 = 4) -> f32 {
     return math.pow((4 * polar_distance * (1 - polar_distance)), alpha)
 }
 
-kernel_shell :: proc(polar_distance: f32, peaks: []f32, alpha: f32 = 4) -> f32 {
+kernel_shell :: proc(polar_distance: f32, peaks: [dynamic]f32, alpha: f32 = 4) -> f32 {
     rank: f32 = f32(len(peaks))  // number of peaks in the shell
 
     br: f32 = rank * polar_distance          // scaling the rank will

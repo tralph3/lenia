@@ -1,25 +1,22 @@
 #version 330
 
-// Input vertex attributes (from vertex shader)
 in vec2 fragTexCoord;
 in vec4 fragColor;
 
-// Input uniform values
+// Set by raylib
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
+// ---
 
-uniform vec2 resolution;
-
+uniform float gridSize;
 uniform sampler2D kernel;
-uniform vec2 kernelSize;
-
+uniform float kernelSize;
 uniform float mu;
 uniform float sigma;
 uniform float alpha;
 uniform float dt;
 uniform float P;
 
-// Output fragment color
 out vec4 finalColor;
 
 float discretize(float val) {
@@ -28,27 +25,24 @@ float discretize(float val) {
 }
 
 float growth_mapping_polynomial(float potential) {
-    if (potential >= (mu - 3.0 * sigma) && potential <= (mu + 3.0 * sigma)) {
-        return 2.0 * pow(1.0 - pow(potential - mu, 2.0) / (9.0 * pow(sigma, 2.0)), alpha) - 1.0;
-    } else {
-        return -1.0;
-    }
+    float condition = float(potential >= (mu - 3.0 * sigma) && potential <= (mu + 3.0 * sigma));
+    return 2.0 * condition * pow(1.0 - pow(potential - mu, 2.0) / (9.0 * pow(sigma, 2.0)), alpha) - 1.0;
 }
 
 float get_potential() {
-    float half_height = kernelSize.x * 0.5 - 0.5;
-    float half_width = kernelSize.y * 0.5 - 0.5;
+    float half_height = kernelSize * 0.5 - 0.5;
+    float half_width = kernelSize * 0.5 - 0.5;
 
-    float cell_x = fragTexCoord.x * resolution.x;
-    float cell_y = fragTexCoord.y * resolution.y;
+    float cell_x = fragTexCoord.x * gridSize;
+    float cell_y = fragTexCoord.y * gridSize;
 
     float result = 0.0;
 
-    for (float h = 0; h < kernelSize.y; h += 1.0) {
-        for (float w = 0; w < kernelSize.x; w += 1.0) {
-            vec2 grid_coord = vec2((cell_x + (half_width - w)) / resolution.x, (cell_y + (half_height - h)) / resolution.y);
+    for (float h = 0; h < kernelSize; h += 1.0) {
+        for (float w = 0; w < kernelSize; w += 1.0) {
+            vec2 grid_coord = vec2((cell_x + (half_width - w)) / gridSize, (cell_y + (half_height - h)) / gridSize);
             float grid_val = texture(texture0, grid_coord).r;
-            float kernel_val = texture(kernel, vec2(w / kernelSize.x, h / kernelSize.y)).r;
+            float kernel_val = texture(kernel, vec2(w / kernelSize, h / kernelSize)).r;
             float weighted_value = grid_val * kernel_val;
             result += weighted_value;
         }
