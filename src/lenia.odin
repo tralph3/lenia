@@ -51,6 +51,14 @@ lenia_new :: proc (parameters: SimulationParams) -> Lenia {
     return lenia
 }
 
+lenia_destroy :: proc (lenia: ^Lenia) {
+    rl.UnloadRenderTexture(lenia.buffers[0])
+    rl.UnloadRenderTexture(lenia.buffers[1])
+    rl.UnloadTexture(lenia.kernel)
+    rl.UnloadShader(lenia.lenia_shader)
+    rl.UnloadShader(lenia.visual_shader)
+}
+
 lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
         kernel_radius = 1,
@@ -141,5 +149,6 @@ lenia_init_kernel :: proc (lenia: ^Lenia) {
         }
     }
     lenia.kernel = rl.LoadTextureFromImage(kernel_image)
+    delete(kernel.mat)
     rl.UnloadImage(kernel_image)
 }

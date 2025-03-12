@@ -72,5 +72,6 @@ main :: proc () {
         }
     }
 
+    lenia_destroy(&lenia)
     rl.CloseWindow()
 }
