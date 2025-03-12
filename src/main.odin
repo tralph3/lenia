@@ -40,7 +40,7 @@ main :: proc () {
     KERNEL_RADIUS :: 5
     KERNEL_PEAKS :: []f32 {1, 1, 1, 1, 1, 1, 1, 1}
     MAIN_GRID_SIZE :: 1000
-    TIME_STEP: c.float = 0.9
+    TIME_STEP: c.float = 1
     MU: c.float = 0.35
     SIGMA: c.float = 0.07
     ALPHA: c.float = 4.0

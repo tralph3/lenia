@@ -57,5 +57,5 @@ void main() {
     float cur_val = texture(texture0, fragTexCoord).r;
     float new_val = clamp(cur_val + dt * growth, 0.0, 1.0);
 
-    finalColor = vec4(new_val, new_val, new_val, 1);
+    finalColor = vec4(new_val, new_val, new_val, 1.0);
 }
