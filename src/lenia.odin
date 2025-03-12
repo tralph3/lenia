@@ -133,8 +133,8 @@ lenia_init_render_buffers :: proc (lenia: ^Lenia) {
 
 @(private="file")
 lenia_load_shaders :: proc (lenia: ^Lenia) {
-    lenia.lenia_shader  = rl.LoadShader(nil, "src/lenia.frag")
-    lenia.visual_shader = rl.LoadShader(nil, "src/visual.frag")
+    lenia.lenia_shader  = rl.LoadShader(nil, "src/shaders/lenia.frag")
+    lenia.visual_shader = rl.LoadShader(nil, "src/shaders/visual.frag")
 }
 
 @(private="file")
