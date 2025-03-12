@@ -39,7 +39,7 @@ button_bounds :: proc (index: int) -> rl.Rectangle {
 main :: proc () {
     KERNEL_RADIUS :: 5
     KERNEL_PEAKS :: []f32 {1, 1, 1, 1, 1, 1, 1, 1}
-    MAIN_GRID_SIZE :: 300
+    MAIN_GRID_SIZE :: 1000
     TIME_STEP: c.float = 0.9
     MU: c.float = 0.35
     SIGMA: c.float = 0.07
@@ -81,6 +81,9 @@ main :: proc () {
 
     rl.SetTextureWrap(buffers[0].texture, .REPEAT)
     rl.SetTextureWrap(buffers[1].texture, .REPEAT)
+
+    rl.SetTextureFilter(buffers[0].texture, .BILINEAR)
+    rl.SetTextureFilter(buffers[1].texture, .BILINEAR)
 
     noise_image := rl.GenImagePerlinNoise(MAIN_GRID_SIZE, MAIN_GRID_SIZE, 0, 0, 5)
     rl.UpdateTexture(buffers[0].texture, noise_image.data)
