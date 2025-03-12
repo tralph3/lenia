@@ -17,9 +17,15 @@ uniform float mu;
 uniform float sigma;
 uniform float alpha;
 uniform float dt;
+uniform float P;
 
 // Output fragment color
 out vec4 finalColor;
+
+float discretize(float val) {
+    float step = 1.0 / P;
+    return round(val * P) * step;
+}
 
 float growth_mapping_polynomial(float potential) {
     if (potential >= (mu - 3.0 * sigma) && potential <= (mu + 3.0 * sigma)) {
@@ -55,7 +61,7 @@ void main() {
     float potential = get_potential();
     float growth = growth_mapping_polynomial(potential);
     float cur_val = texture(texture0, fragTexCoord).r;
-    float new_val = clamp(cur_val + dt * growth, 0.0, 1.0);
+    float new_val = discretize(clamp(cur_val + dt * growth, 0.0, 1.0));
 
     finalColor = vec4(new_val, new_val, new_val, 1.0);
 }

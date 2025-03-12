@@ -44,6 +44,7 @@ main :: proc () {
     MU: c.float = 0.35
     SIGMA: c.float = 0.07
     ALPHA: c.float = 4
+    P: c.float = 25
 
     rl.SetConfigFlags({.FULLSCREEN_MODE, .WINDOW_RESIZABLE})
     rl.InitWindow(1920, 1080, "Lenia")
@@ -113,6 +114,9 @@ main :: proc () {
 
     dt_loc := rl.GetShaderLocation(lenia_shader, "dt")
     rl.SetShaderValue(lenia_shader, dt_loc, &TIME_STEP, .FLOAT)
+
+    p_loc := rl.GetShaderLocation(lenia_shader, "P")
+    rl.SetShaderValue(lenia_shader, p_loc, &P, .FLOAT)
 
     buffer_index := 0
 
