@@ -43,7 +43,7 @@ main :: proc () {
     TIME_STEP: c.float = 1
     MU: c.float = 0.35
     SIGMA: c.float = 0.07
-    ALPHA: c.float = 4.0
+    ALPHA: c.float = 4
 
     rl.SetConfigFlags({.FULLSCREEN_MODE, .WINDOW_RESIZABLE})
     rl.InitWindow(1920, 1080, "Lenia")
@@ -82,36 +82,37 @@ main :: proc () {
     rl.SetTextureWrap(buffers[0].texture, .REPEAT)
     rl.SetTextureWrap(buffers[1].texture, .REPEAT)
 
-    rl.SetTextureFilter(buffers[0].texture, .BILINEAR)
-    rl.SetTextureFilter(buffers[1].texture, .BILINEAR)
+    // rl.SetTextureFilter(buffers[0].texture, .BILINEAR)
+    // rl.SetTextureFilter(buffers[1].texture, .BILINEAR)
 
     noise_image := rl.GenImagePerlinNoise(MAIN_GRID_SIZE, MAIN_GRID_SIZE, 0, 0, 5)
     rl.UpdateTexture(buffers[0].texture, noise_image.data)
     rl.UnloadImage(noise_image)
 
-    shader := rl.LoadShader(nil, "src/shader.fs")
+    lenia_shader := rl.LoadShader(nil, "src/lenia.frag")
+    visual_shader := rl.LoadShader(nil, "src/visual.frag")
+
     resolution := rl.Vector2 { MAIN_GRID_SIZE, MAIN_GRID_SIZE }
+    resolution_loc := rl.GetShaderLocation(lenia_shader, "resolution")
+    rl.SetShaderValue(lenia_shader, resolution_loc, &resolution, .VEC2)
 
-    resolution_loc := rl.GetShaderLocation(shader, "resolution")
-    rl.SetShaderValue(shader, resolution_loc, &resolution, .VEC2)
-
-    kernel_loc := rl.GetShaderLocation(shader, "kernel")
+    kernel_loc := rl.GetShaderLocation(lenia_shader, "kernel")
 
     kernel_size := rl.Vector2 { c.float(kernel.width), c.float(kernel.height) }
-    kernel_size_loc := rl.GetShaderLocation(shader, "kernelSize")
-    rl.SetShaderValue(shader, kernel_size_loc, &kernel_size, .VEC2)
+    kernel_size_loc := rl.GetShaderLocation(lenia_shader, "kernelSize")
+    rl.SetShaderValue(lenia_shader, kernel_size_loc, &kernel_size, .VEC2)
 
-    mu_loc := rl.GetShaderLocation(shader, "mu")
-    rl.SetShaderValue(shader, mu_loc, &MU, .FLOAT)
+    mu_loc := rl.GetShaderLocation(lenia_shader, "mu")
+    rl.SetShaderValue(lenia_shader, mu_loc, &MU, .FLOAT)
 
-    sigma_loc := rl.GetShaderLocation(shader, "sigma")
-    rl.SetShaderValue(shader, sigma_loc, &SIGMA, .FLOAT)
+    sigma_loc := rl.GetShaderLocation(lenia_shader, "sigma")
+    rl.SetShaderValue(lenia_shader, sigma_loc, &SIGMA, .FLOAT)
 
-    alpha_loc := rl.GetShaderLocation(shader, "alpha")
-    rl.SetShaderValue(shader, alpha_loc, &ALPHA, .FLOAT)
+    alpha_loc := rl.GetShaderLocation(lenia_shader, "alpha")
+    rl.SetShaderValue(lenia_shader, alpha_loc, &ALPHA, .FLOAT)
 
-    dt_loc := rl.GetShaderLocation(shader, "dt")
-    rl.SetShaderValue(shader, dt_loc, &TIME_STEP, .FLOAT)
+    dt_loc := rl.GetShaderLocation(lenia_shader, "dt")
+    rl.SetShaderValue(lenia_shader, dt_loc, &TIME_STEP, .FLOAT)
 
     buffer_index := 0
 
@@ -123,15 +124,17 @@ main :: proc () {
         rl.BeginDrawing()
             rl.ClearBackground(rl.BLACK)
             rl.BeginMode2D(camera)
-                rl.DrawTexture(buffers[buffer_index].texture, 0, 0, rl.WHITE)
+                rl.BeginShaderMode(visual_shader)
+                    rl.DrawTexture(buffers[buffer_index].texture, 0, 0, rl.RED)
+                rl.EndShaderMode()
             rl.EndMode2D()
             rl.DrawFPS(0,0)
         rl.EndDrawing()
 
         if (time.duration_seconds(time.since(last_time)) >= simulation_frame_time) {
             rl.BeginTextureMode(buffers[1 - buffer_index])
-                rl.BeginShaderMode(shader)
-                    rl.SetShaderValueTexture(shader, kernel_loc, kernel_tex)
+                rl.BeginShaderMode(lenia_shader)
+                    rl.SetShaderValueTexture(lenia_shader, kernel_loc, kernel_tex)
                     rl.DrawTextureRec(buffers[buffer_index].texture, { 0, 0, MAIN_GRID_SIZE, -MAIN_GRID_SIZE }, { 0, 0 }, rl.WHITE)
                 rl.EndShaderMode()
             rl.EndTextureMode()
