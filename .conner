@@ -1,5 +1,4 @@
 ;;; -*- lisp-data -*-
 ((:name "Compile and run"
-        :command ("mkdir -p ./build"
-                  "odin run src -out:build/lenia -strict-style")
+        :command "odin run build.odin -file && ./build/lenia"
         :type "compile"))
