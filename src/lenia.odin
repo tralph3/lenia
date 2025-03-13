@@ -71,6 +71,7 @@ lenia_destroy :: proc (lenia: ^Lenia) {
     rl.UnloadTexture(lenia.kernel)
     rl.UnloadShader(lenia.lenia_shader)
     rl.UnloadShader(lenia.visual_shader)
+    delete(lenia.parameters.kernel_peaks)
 }
 
 lenia_get_default_params :: proc () -> SimulationParams {
