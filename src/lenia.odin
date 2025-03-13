@@ -108,6 +108,11 @@ lenia_draw :: proc (lenia: ^Lenia) {
     rl.EndShaderMode()
 }
 
+lenia_reset :: proc (lenia: ^Lenia) {
+    lenia_fill_with_random_noise(lenia.buffers[0])
+    lenia.buffer_index = 0
+}
+
 @(private="file")
 lenia_update_shader_params :: proc (lenia: ^Lenia) {
     kernel_width := f32(lenia.kernel.width)
@@ -133,6 +138,13 @@ lenia_set_shader_param_locs :: proc (lenia: ^Lenia) {
 }
 
 @(private="file")
+lenia_fill_with_random_noise :: proc (buffer: rl.RenderTexture2D) {
+    noise_image := rl.GenImagePerlinNoise(buffer.texture.width, buffer.texture.width, 0, 0, 5)
+    rl.UpdateTexture(buffer.texture, noise_image.data)
+    rl.UnloadImage(noise_image)
+}
+
+@(private="file")
 lenia_init_render_buffers :: proc (lenia: ^Lenia) {
     lenia.buffers = {
         rl.LoadRenderTexture(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size)),
@@ -142,9 +154,7 @@ lenia_init_render_buffers :: proc (lenia: ^Lenia) {
     rl.SetTextureWrap(lenia.buffers[0].texture, .REPEAT)
     rl.SetTextureWrap(lenia.buffers[1].texture, .REPEAT)
 
-    noise_image := rl.GenImagePerlinNoise(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size), 0, 0, 5)
-    rl.UpdateTexture(lenia.buffers[0].texture, noise_image.data)
-    rl.UnloadImage(noise_image)
+    lenia_fill_with_random_noise(lenia.buffers[0])
 }
 
 @(private="file")

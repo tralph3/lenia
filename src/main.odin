@@ -44,6 +44,7 @@ main :: proc () {
     simulation_fps: f64 = 60
 
     lenia := lenia_new(lenia_get_default_params())
+    SIMULATION_STATE.lenia = &lenia
 
     camera := rl.Camera2D {
         target = rl.Vector2 {
@@ -63,10 +64,11 @@ main :: proc () {
             rl.BeginMode2D(camera)
                 lenia_draw(&lenia)
             rl.EndMode2D()
+            draw_gui()
             rl.DrawFPS(0,0)
         rl.EndDrawing()
 
-        if (time.duration_seconds(time.since(last_time)) >= simulation_frame_time) {
+        if (SIMULATION_STATE.running && time.duration_seconds(time.since(last_time)) >= simulation_frame_time) {
             lenia_compute_simulation_step(&lenia)
             last_time = time.now()
         }
