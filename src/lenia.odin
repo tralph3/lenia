@@ -150,7 +150,7 @@ lenia_init_render_buffers :: proc (lenia: ^Lenia) {
 @(private="file")
 lenia_load_shaders :: proc (lenia: ^Lenia) {
     lenia.lenia_shader  = shader_lenia_make(lenia.parameters.growth_function, lenia.parameters.precision > 0)
-    lenia.visual_shader = rl.LoadShader(nil, "src/shaders/visual.frag")
+    lenia.visual_shader = shader_visual_make()
 }
 
 @(private="file")

@@ -4,40 +4,53 @@ import rl "vendor:raylib"
 import "core:os"
 import "core:strings"
 
+visual               := #load("shaders/visual.frag")
+
+shader_pre           := #load("shaders/lenia_pre.frag")
+shader_post          := #load("shaders/lenia_post.frag")
+
+discretize_normal    := #load("shaders/discretize_normal.frag")
+discretize_nullified := #load("shaders/discretize_nullified.frag")
+
+growth_rectangular   := #load("shaders/growth_rectangular.frag")
+growth_polynomial    := #load("shaders/growth_polynomial.frag")
+growth_exponential   := #load("shaders/growth_exponential.frag")
+
 shader_lenia_make :: proc (growth: GrowthFunctionType, discretize: bool) -> rl.Shader {
     builder := strings.builder_make()
-
-    shader_pre, _ := os.read_entire_file("src/shaders/lenia_pre.frag")
-    shader_post, _ := os.read_entire_file("src/shaders/lenia_post.frag")
+    defer strings.builder_destroy(&builder)
 
     strings.write_bytes(&builder, shader_pre)
 
-    bytes: []byte
     switch growth {
     case .Rectangular:
-        bytes, _ = os.read_entire_file("src/shaders/growth_rectangular.frag")
+        strings.write_bytes(&builder, growth_rectangular)
     case .Polynomial:
-        bytes, _ = os.read_entire_file("src/shaders/growth_polynomial.frag")
+        strings.write_bytes(&builder, growth_polynomial)
     case .Exponential:
-        bytes, _ = os.read_entire_file("src/shaders/growth_exponential.frag")
+        strings.write_bytes(&builder, growth_exponential)
     }
-    strings.write_bytes(&builder, bytes)
-    delete(bytes)
 
     if discretize {
-        bytes, _ = os.read_entire_file("src/shaders/discretize_normal.frag")
+        strings.write_bytes(&builder, discretize_normal)
     } else {
-        bytes, _ = os.read_entire_file("src/shaders/discretize_nullified.frag")
+        strings.write_bytes(&builder, discretize_nullified)
     }
-    strings.write_bytes(&builder, bytes)
-    delete(bytes)
 
     strings.write_bytes(&builder, shader_post)
 
     shader, _ := strings.to_cstring(&builder)
 
-    delete(shader_pre)
-    delete(shader_post)
+    return rl.LoadShaderFromMemory(nil, shader)
+}
+
+shader_visual_make :: proc () -> rl.Shader {
+    builder := strings.builder_make()
+    defer strings.builder_destroy(&builder)
+
+    strings.write_bytes(&builder, visual)
+
+    shader, _ := strings.to_cstring(&builder)
 
     return rl.LoadShaderFromMemory(nil, shader)
 }
