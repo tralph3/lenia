@@ -28,12 +28,26 @@ ShaderParamLocs :: struct {
 SimulationParams :: struct {
     kernel_radius: i32,
     kernel_peaks: [dynamic]f32,
+    growth_function: GrowthFunctionType,
     precision: c.float,
     grid_size: c.float,
     time_step: c.float,
     mu: c.float,
     sigma: c.float,
     alpha: c.float,
+}
+
+GrowthFunctionType :: enum {
+    Rectangular,
+    Polynomial,
+    Exponential,
+}
+
+KernelCoreType :: enum {
+    Rectangular,
+    RectangularGol,
+    Polynomial,
+    Exponential,
 }
 
 lenia_new :: proc (parameters: SimulationParams) -> Lenia {
@@ -63,6 +77,7 @@ lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
         kernel_radius = 1,
         precision = 1,
+        growth_function = .Polynomial,
         grid_size = 1000,
         time_step = 1,
         mu = 0.35,
@@ -133,13 +148,13 @@ lenia_init_render_buffers :: proc (lenia: ^Lenia) {
 
 @(private="file")
 lenia_load_shaders :: proc (lenia: ^Lenia) {
-    lenia.lenia_shader  = rl.LoadShader(nil, "src/shaders/lenia.frag")
+    lenia.lenia_shader  = shader_lenia_make(lenia.parameters.growth_function, lenia.parameters.precision > 0)
     lenia.visual_shader = rl.LoadShader(nil, "src/shaders/visual.frag")
 }
 
 @(private="file")
 lenia_init_kernel :: proc (lenia: ^Lenia) {
-    kernel := generate_kernel(lenia.parameters.kernel_radius, lenia.parameters.kernel_peaks, lenia.parameters.alpha)
+    kernel := generate_kernel(lenia.parameters.kernel_radius, lenia.parameters.kernel_peaks[:], lenia.parameters.alpha)
     kernel_image := rl.GenImageColor(kernel.width, kernel.height, rl.WHITE)
 
     for h in 0..<kernel.height {
