@@ -27,7 +27,7 @@ calculate_camera_position :: proc (camera: ^rl.Camera2D) {
             scale_factor = 1 / scale_factor
         }
 
-        camera.zoom = rl.Clamp(camera.zoom * scale_factor, 0.125, 128.0);
+        camera.zoom = rl.Clamp(camera.zoom * scale_factor, 0.125, 128.0)
     }
 }
 
@@ -48,9 +48,9 @@ main :: proc () {
     camera := rl.Camera2D {
         target = rl.Vector2 {
             f32(lenia.parameters.grid_size) / 2 - f32(rl.GetScreenWidth()) / 2,
-            f32(lenia.parameters.grid_size) / 2 - f32(rl.GetScreenHeight()) / 2
+            f32(lenia.parameters.grid_size) / 2 - f32(rl.GetScreenHeight()) / 2,
         },
-        zoom = 1
+        zoom = 1,
     }
 
     simulation_frame_time: f64 = 1 / simulation_fps

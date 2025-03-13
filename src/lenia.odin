@@ -163,6 +163,7 @@ lenia_init_kernel :: proc (lenia: ^Lenia) {
             rl.ImageDrawPixel(&kernel_image, w, h, { u8(kernel_val * 255), 0, 0, 255 })
         }
     }
+
     lenia.kernel = rl.LoadTextureFromImage(kernel_image)
     delete(kernel.mat)
     rl.UnloadImage(kernel_image)
