@@ -15,7 +15,7 @@ generate_kernel :: proc (radius: i32, peaks: []f32, alpha: f32 = 4) -> Grid {
         for w in 0..<diameter {
             polar_distance := min(1, get_polar_distance({w, h}, kernel_center) / max_distance)
             shell_value := kernel_shell(polar_distance, peaks, alpha)
-            set_grid(kernel, i32(w), i32(h), 1)
+            set_grid(kernel, i32(w), i32(h), shell_value)
         }
     }
 
