@@ -13,9 +13,9 @@ GUI_ELEMENT_INDEX: int = 0
 
 GUI_STATUS_BAR_HEIGHT: f32 : 20
 
-GUI_GROWTH_EDIT_MODE: c.bool = false
-
+GUI_SIM_FPS_EDIT_MODE: c.bool = false
 GUI_PRECISION_EDIT_MODE: c.bool = false
+GUI_GROWTH_EDIT_MODE: c.bool = false
 
 get_element_bounds :: proc () -> rl.Rectangle {
     return {
@@ -64,6 +64,15 @@ draw_gui :: proc () {
 
     // provides spacing
     draw_element(proc () {})
+
+    draw_element(proc () {
+        bounds := get_element_bounds()
+        draw_label(bounds, "Simulation FPS")
+
+        if bool(rl.GuiSpinner(bounds, "", &SIMULATION_STATE.fps, 1, 60, GUI_SIM_FPS_EDIT_MODE)) {
+            GUI_SIM_FPS_EDIT_MODE = !GUI_SIM_FPS_EDIT_MODE
+        }
+    })
 
     draw_element(proc () {
         bounds := get_element_bounds()

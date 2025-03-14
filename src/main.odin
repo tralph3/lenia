@@ -25,17 +25,10 @@ calculate_camera_position :: proc (camera: ^rl.Camera2D) {
     }
 }
 
-button_bounds :: proc (index: int) -> rl.Rectangle {
-    button_spacing: f32 = 60
-    return { 10, 10 + button_spacing * f32(index), 100, 40}
-}
-
 main :: proc () {
     rl.SetConfigFlags({.FULLSCREEN_MODE, .WINDOW_RESIZABLE})
     rl.InitWindow(1920, 1080, "Lenia")
     rl.SetTargetFPS(60)
-
-    simulation_fps: f64 = 60
 
     SIMULATION_STATE.lenia = lenia_new(lenia_get_default_params())
     lenia := &SIMULATION_STATE.lenia
@@ -48,7 +41,6 @@ main :: proc () {
         zoom = 1,
     }
 
-    simulation_frame_time: f64 = 1 / simulation_fps
     last_time := time.now()
     for !rl.WindowShouldClose() {
         rl.BeginDrawing()
@@ -62,7 +54,7 @@ main :: proc () {
 
         calculate_camera_position(&camera)
 
-        if (SIMULATION_STATE.running && time.duration_seconds(time.since(last_time)) >= simulation_frame_time) {
+        if (SIMULATION_STATE.running && time.duration_seconds(time.since(last_time)) >= 1 / f64(SIMULATION_STATE.fps)) {
             lenia_compute_simulation_step(lenia)
             last_time = time.now()
         }
