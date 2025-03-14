@@ -1,7 +1,6 @@
 package main
 
 import "core:math"
-import "core:fmt"
 
 generate_kernel :: proc (radius: i32, peaks: []f32, alpha: f32 = 4) -> Grid {
     diameter: i32 = radius * 2 + 1  // ensure odd numbers to have a

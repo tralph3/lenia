@@ -2,7 +2,6 @@ package main
 
 import "core:c"
 import rl "vendor:raylib"
-import "core:fmt"
 import "core:math/rand"
 
 Lenia :: struct {

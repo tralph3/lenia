@@ -1,10 +1,6 @@
 package main
 
 import "core:math"
-import "core:math/rand"
-import "core:mem"
-import "core:thread"
-import "core:sync"
 
 Grid :: struct {
     mat: []f32,

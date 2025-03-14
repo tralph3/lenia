@@ -1,7 +1,6 @@
 package main
 
 import rl "vendor:raylib"
-import "core:os"
 import "core:strings"
 
 visual               := #load("shaders/visual.frag")
