@@ -40,18 +40,21 @@ draw_gui :: proc () {
     GUI_ELEMENT_INDEX = 0
 
     draw_element(proc () {
+        if rl.IsKeyPressed(.SPACE) {
+            SIMULATION_STATE.running = !SIMULATION_STATE.running
+        }
         rl.GuiToggle(get_element_bounds(), "Running", &SIMULATION_STATE.running)
     })
 
     draw_element(proc () {
-        if rl.GuiButton(get_element_bounds(), "Reset") {
+        if rl.GuiButton(get_element_bounds(), "Reset") || rl.IsKeyPressed(.R) {
             lenia_reset(SIMULATION_STATE.lenia)
             SIMULATION_STATE.running = false
         }
     })
 
     draw_element(proc () {
-        if rl.GuiButton(get_element_bounds(), "Step") {
+        if rl.GuiButton(get_element_bounds(), "Step") || rl.IsKeyPressed(.S) {
             SIMULATION_STATE.running = false
             lenia_compute_simulation_step(SIMULATION_STATE.lenia)
         }
