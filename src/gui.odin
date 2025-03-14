@@ -11,6 +11,8 @@ GUI_ELEMENT_OFFSET :: 20
 
 GUI_ELEMENT_INDEX: int = 0
 
+GUI_STATUS_BAR_HEIGHT: f32 : 20
+
 GUI_GROWTH_EDIT_MODE: c.bool = false
 
 GUI_PRECISION_EDIT_MODE: c.bool = false
@@ -152,4 +154,11 @@ draw_gui :: proc () {
     }) {
         rl.GuiLock()
     }
+
+    rl.GuiStatusBar(
+        {
+            0, f32(rl.GetRenderHeight()) - GUI_STATUS_BAR_HEIGHT,
+            f32(rl.GetRenderWidth()), GUI_STATUS_BAR_HEIGHT,
+        },
+        "SPACE - Run/stop simulation | R - Restart simulation | S - Do single simulation step")
 }
