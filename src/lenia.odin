@@ -59,8 +59,6 @@ lenia_new :: proc (parameters: SimulationParams) -> Lenia {
     lenia_init_render_buffers(&lenia)
     lenia_init_kernel(&lenia)
     lenia_load_shaders(&lenia)
-    lenia_set_shader_param_locs(&lenia)
-    lenia_update_shader_params(&lenia)
 
     return lenia
 }
@@ -218,6 +216,9 @@ lenia_load_shaders :: proc (lenia: ^Lenia) {
 
     lenia.lenia_shader  = shader_lenia_make(lenia.parameters.growth_function, lenia.parameters.precision > 0)
     lenia.visual_shader = shader_visual_make()
+
+    lenia_set_shader_param_locs(lenia)
+    lenia_update_shader_params(lenia)
 }
 
 @(private="file")

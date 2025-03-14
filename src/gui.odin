@@ -12,7 +12,6 @@ GUI_ELEMENT_OFFSET :: 20
 GUI_ELEMENT_INDEX: int = 0
 
 GUI_GROWTH_EDIT_MODE: c.bool = false
-GUI_GROWTH_SELECTED: c.int = 0
 
 GUI_PRECISION_EDIT_MODE: c.bool = false
 
@@ -127,10 +126,12 @@ draw_gui :: proc () {
 
         bounds := get_element_bounds()
         draw_label(bounds, "Growth Function")
-        if rl.GuiDropdownBox(bounds, cstr, &GUI_GROWTH_SELECTED, GUI_GROWTH_EDIT_MODE) {
+
+        selected := c.int(SIMULATION_STATE.lenia.parameters.growth_function)
+        if rl.GuiDropdownBox(bounds, cstr, &selected, GUI_GROWTH_EDIT_MODE) {
             GUI_GROWTH_EDIT_MODE = !GUI_GROWTH_EDIT_MODE
             if !GUI_GROWTH_EDIT_MODE {
-                lenia_change_growth_function(SIMULATION_STATE.lenia, GrowthFunctionType(GUI_GROWTH_SELECTED))
+                lenia_change_growth_function(SIMULATION_STATE.lenia, GrowthFunctionType(selected))
             }
         }
 
