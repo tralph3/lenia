@@ -27,7 +27,7 @@ calculate_camera_position :: proc (camera: ^rl.Camera2D) {
 
 main :: proc () {
     rl.SetConfigFlags({.FULLSCREEN_MODE, .WINDOW_RESIZABLE})
-    rl.InitWindow(1920, 1080, "Lenia")
+    rl.InitWindow(rl.GetMonitorWidth(0), rl.GetMonitorHeight(0), "Lenia")
     rl.SetTargetFPS(60)
 
     SIMULATION_STATE.lenia = lenia_new(lenia_get_default_params())
