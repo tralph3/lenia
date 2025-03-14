@@ -160,5 +160,5 @@ draw_gui :: proc () {
             0, f32(rl.GetRenderHeight()) - GUI_STATUS_BAR_HEIGHT,
             f32(rl.GetRenderWidth()), GUI_STATUS_BAR_HEIGHT,
         },
-        "SPACE - Run/stop simulation | R - Restart simulation | S - Do single simulation step")
+        "SPACE - Run/stop simulation | R - Restart simulation | S - Do single simulation step | Hold LEFT SHIFT on sliders to snap to whole numbers")
 }
