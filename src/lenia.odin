@@ -3,6 +3,7 @@ package main
 import "core:c"
 import rl "vendor:raylib"
 import "core:fmt"
+import "core:math/rand"
 
 Lenia :: struct {
     buffers: [2]rl.RenderTexture2D,
@@ -191,9 +192,19 @@ lenia_set_shader_param_locs :: proc (lenia: ^Lenia) {
 
 @(private="file")
 lenia_fill_with_random_noise :: proc (buffer: rl.RenderTexture2D) {
-    noise_image := rl.GenImagePerlinNoise(buffer.texture.width, buffer.texture.width, 0, 0, 5)
-    rl.UpdateTexture(buffer.texture, noise_image.data)
-    rl.UnloadImage(noise_image)
+    random_shader := shader_random_make()
+
+    seed := c.float(rand.float32() - 0.5)
+    seed_loc := rl.GetShaderLocation(random_shader, "seed")
+    rl.SetShaderValue(random_shader, seed_loc, &seed, .FLOAT)
+
+    rl.BeginTextureMode(buffer)
+        rl.BeginShaderMode(random_shader)
+            rl.DrawTexture(buffer.texture, 0, 0, rl.WHITE)
+        rl.EndShaderMode()
+    rl.EndTextureMode()
+
+    rl.UnloadShader(random_shader)
 }
 
 @(private="file")
