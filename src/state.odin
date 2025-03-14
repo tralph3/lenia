@@ -2,7 +2,7 @@ package main
 
 SimulationState :: struct {
     running: bool,
-    lenia: ^Lenia,
+    lenia: Lenia,
 }
 
 SIMULATION_STATE: SimulationState = {

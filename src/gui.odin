@@ -50,7 +50,7 @@ draw_gui :: proc () {
 
     draw_element(proc () {
         if rl.GuiButton(get_element_bounds(), "Reset") || rl.IsKeyPressed(.R) {
-            lenia_reset(SIMULATION_STATE.lenia)
+            lenia_reset(&SIMULATION_STATE.lenia)
             SIMULATION_STATE.running = false
         }
     })
@@ -58,7 +58,7 @@ draw_gui :: proc () {
     draw_element(proc () {
         if rl.GuiButton(get_element_bounds(), "Step") || rl.IsKeyPressed(.S) {
             SIMULATION_STATE.running = false
-            lenia_compute_simulation_step(SIMULATION_STATE.lenia)
+            lenia_compute_simulation_step(&SIMULATION_STATE.lenia)
         }
     })
 
@@ -75,7 +75,7 @@ draw_gui :: proc () {
             GUI_PRECISION_EDIT_MODE = !GUI_PRECISION_EDIT_MODE
         }
 
-        lenia_update_precision(SIMULATION_STATE.lenia, precision)
+        lenia_update_precision(&SIMULATION_STATE.lenia, precision)
     })
 
     draw_element(proc () {
@@ -89,7 +89,7 @@ draw_gui :: proc () {
             alpha = math.round(alpha)
         }
 
-        lenia_update_alpha(SIMULATION_STATE.lenia, alpha)
+        lenia_update_alpha(&SIMULATION_STATE.lenia, alpha)
     })
 
     draw_element(proc () {
@@ -103,7 +103,7 @@ draw_gui :: proc () {
             mu = math.round(mu)
         }
 
-        lenia_update_mu(SIMULATION_STATE.lenia, mu)
+        lenia_update_mu(&SIMULATION_STATE.lenia, mu)
     })
 
     draw_element(proc () {
@@ -117,7 +117,7 @@ draw_gui :: proc () {
             sigma = math.round(sigma)
         }
 
-        lenia_update_sigma(SIMULATION_STATE.lenia, sigma)
+        lenia_update_sigma(&SIMULATION_STATE.lenia, sigma)
     })
 
     draw_element(proc () {
@@ -137,7 +137,7 @@ draw_gui :: proc () {
         if rl.GuiDropdownBox(bounds, cstr, &selected, GUI_GROWTH_EDIT_MODE) {
             GUI_GROWTH_EDIT_MODE = !GUI_GROWTH_EDIT_MODE
             if !GUI_GROWTH_EDIT_MODE {
-                lenia_change_growth_function(SIMULATION_STATE.lenia, GrowthFunctionType(selected))
+                lenia_change_growth_function(&SIMULATION_STATE.lenia, GrowthFunctionType(selected))
             }
         }
 

@@ -43,8 +43,8 @@ main :: proc () {
 
     simulation_fps: f64 = 60
 
-    lenia := lenia_new(lenia_get_default_params())
-    SIMULATION_STATE.lenia = &lenia
+    SIMULATION_STATE.lenia = lenia_new(lenia_get_default_params())
+    lenia := &SIMULATION_STATE.lenia
 
     camera := rl.Camera2D {
         target = rl.Vector2 {
@@ -60,7 +60,7 @@ main :: proc () {
         rl.BeginDrawing()
             rl.ClearBackground(rl.BLACK)
             rl.BeginMode2D(camera)
-                lenia_draw(&lenia)
+                lenia_draw(lenia)
             rl.EndMode2D()
             draw_gui()
             rl.DrawFPS(0,0)
@@ -69,11 +69,11 @@ main :: proc () {
         calculate_camera_position(&camera)
 
         if (SIMULATION_STATE.running && time.duration_seconds(time.since(last_time)) >= simulation_frame_time) {
-            lenia_compute_simulation_step(&lenia)
+            lenia_compute_simulation_step(lenia)
             last_time = time.now()
         }
     }
 
-    lenia_destroy(&lenia)
+    lenia_destroy(lenia)
     rl.CloseWindow()
 }

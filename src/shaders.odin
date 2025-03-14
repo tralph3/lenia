@@ -16,6 +16,8 @@ growth_rectangular   := #load("shaders/growth_rectangular.frag")
 growth_polynomial    := #load("shaders/growth_polynomial.frag")
 growth_exponential   := #load("shaders/growth_exponential.frag")
 
+random               := #load("shaders/random.frag")
+
 shader_lenia_make :: proc (growth: GrowthFunctionType, discretize: bool) -> rl.Shader {
     builder := strings.builder_make()
     defer strings.builder_destroy(&builder)
@@ -49,6 +51,17 @@ shader_visual_make :: proc () -> rl.Shader {
     defer strings.builder_destroy(&builder)
 
     strings.write_bytes(&builder, visual)
+
+    shader, _ := strings.to_cstring(&builder)
+
+    return rl.LoadShaderFromMemory(nil, shader)
+}
+
+shader_random_make :: proc () -> rl.Shader {
+    builder := strings.builder_make()
+    defer strings.builder_destroy(&builder)
+
+    strings.write_bytes(&builder, random)
 
     shader, _ := strings.to_cstring(&builder)
 
