@@ -46,6 +46,7 @@ draw_gui :: proc () {
     draw_element(proc () {
         if rl.GuiButton(get_element_bounds(), "Reset") {
             lenia_reset(SIMULATION_STATE.lenia)
+            SIMULATION_STATE.running = false
         }
     })
 
