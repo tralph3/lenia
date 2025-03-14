@@ -42,6 +42,7 @@ main :: proc () {
     append(&cmd, "-out:build/lenia")
     append(&cmd, "-strict-style")
     append(&cmd, "-error-pos-style:unix")
+    append(&cmd, "-sanitize:address")
     // append(&cmd, "-vet-unused-imports")
 
     run_cmd(cmd[:])

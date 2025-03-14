@@ -10,7 +10,7 @@ import "core:time"
 import "core:c"
 
 calculate_camera_position :: proc (camera: ^rl.Camera2D) {
-    if (rl.IsMouseButtonDown(.LEFT)) {
+    if !rl.GuiIsLocked() && (rl.IsMouseButtonDown(.LEFT)) {
         delta := rl.GetMouseDelta()
         delta = delta * -1.0/camera.zoom
         camera.target += delta
@@ -57,8 +57,6 @@ main :: proc () {
     simulation_frame_time: f64 = 1 / simulation_fps
     last_time := time.now()
     for !rl.WindowShouldClose() {
-        calculate_camera_position(&camera)
-
         rl.BeginDrawing()
             rl.ClearBackground(rl.BLACK)
             rl.BeginMode2D(camera)
@@ -67,6 +65,8 @@ main :: proc () {
             draw_gui()
             rl.DrawFPS(0,0)
         rl.EndDrawing()
+
+        calculate_camera_position(&camera)
 
         if (SIMULATION_STATE.running && time.duration_seconds(time.since(last_time)) >= simulation_frame_time) {
             lenia_compute_simulation_step(&lenia)

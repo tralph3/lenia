@@ -29,7 +29,7 @@ SimulationParams :: struct {
     kernel_radius: i32,
     kernel_peaks: [dynamic]f32,
     growth_function: GrowthFunctionType,
-    precision: c.float,
+    precision: c.int,
     grid_size: c.float,
     time_step: c.float,
     mu: c.float,
@@ -37,13 +37,13 @@ SimulationParams :: struct {
     alpha: c.float,
 }
 
-GrowthFunctionType :: enum {
+GrowthFunctionType :: enum c.int {
     Rectangular,
     Polynomial,
     Exponential,
 }
 
-KernelCoreType :: enum {
+KernelCoreType :: enum c.int {
     Rectangular,
     RectangularGol,
     Polynomial,
@@ -76,7 +76,7 @@ lenia_destroy :: proc (lenia: ^Lenia) {
 
 lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
-        kernel_radius = 1,
+        kernel_radius = 5,
         precision = 1,
         growth_function = .Polynomial,
         grid_size = 1000,
@@ -113,12 +113,66 @@ lenia_reset :: proc (lenia: ^Lenia) {
     lenia.buffer_index = 0
 }
 
+lenia_change_growth_function :: proc (lenia: ^Lenia, growth_function: GrowthFunctionType) {
+    lenia.parameters.growth_function = growth_function
+    lenia_load_shaders(lenia)
+}
+
+lenia_update_mu :: proc (lenia: ^Lenia, new_val: c.float) {
+    if new_val == lenia.parameters.mu {
+        return
+    }
+    lenia.parameters.mu = new_val
+    lenia_update_shader_params(lenia)
+}
+
+lenia_update_sigma :: proc (lenia: ^Lenia, new_val: c.float) {
+    if new_val == lenia.parameters.sigma {
+        return
+    }
+    lenia.parameters.sigma = new_val
+    lenia_update_shader_params(lenia)
+}
+
+lenia_update_alpha :: proc (lenia: ^Lenia, new_val: c.float) {
+    if new_val == lenia.parameters.alpha {
+        return
+    }
+    lenia.parameters.alpha = new_val
+    lenia_update_shader_params(lenia)
+}
+
+lenia_update_dt :: proc (lenia: ^Lenia, new_val: c.float) {
+    if new_val == lenia.parameters.time_step {
+        return
+    }
+    lenia.parameters.time_step = new_val
+    lenia_update_shader_params(lenia)
+}
+
+lenia_update_precision :: proc (lenia: ^Lenia, new_val: c.int) {
+    if new_val == lenia.parameters.precision {
+        return
+    }
+
+    if (new_val == 0 && lenia.parameters.precision != 0) ||
+        (new_val != 0 && lenia.parameters.precision == 0) {
+            lenia.parameters.precision = new_val
+            lenia_load_shaders(lenia)
+        } else {
+            lenia.parameters.precision = new_val
+        }
+
+    lenia_update_shader_params(lenia)
+}
+
 @(private="file")
 lenia_update_shader_params :: proc (lenia: ^Lenia) {
     kernel_width := f32(lenia.kernel.width)
+    precision: c.float = c.float(lenia.parameters.precision)
     rl.SetShaderValue(lenia.lenia_shader, lenia.shader_param_locs.kernel_size, &kernel_width, .FLOAT)
     rl.SetShaderValue(lenia.lenia_shader, lenia.shader_param_locs.grid_size, &lenia.parameters.grid_size, .FLOAT)
-    rl.SetShaderValue(lenia.lenia_shader, lenia.shader_param_locs.precision, &lenia.parameters.precision, .FLOAT)
+    rl.SetShaderValue(lenia.lenia_shader, lenia.shader_param_locs.precision, &precision, .FLOAT)
     rl.SetShaderValue(lenia.lenia_shader, lenia.shader_param_locs.mu, &lenia.parameters.mu, .FLOAT)
     rl.SetShaderValue(lenia.lenia_shader, lenia.shader_param_locs.sigma, &lenia.parameters.sigma, .FLOAT)
     rl.SetShaderValue(lenia.lenia_shader, lenia.shader_param_locs.alpha, &lenia.parameters.alpha, .FLOAT)
@@ -159,6 +213,9 @@ lenia_init_render_buffers :: proc (lenia: ^Lenia) {
 
 @(private="file")
 lenia_load_shaders :: proc (lenia: ^Lenia) {
+    rl.UnloadShader(lenia.lenia_shader)
+    rl.UnloadShader(lenia.visual_shader)
+
     lenia.lenia_shader  = shader_lenia_make(lenia.parameters.growth_function, lenia.parameters.precision > 0)
     lenia.visual_shader = shader_visual_make()
 }
