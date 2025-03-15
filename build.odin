@@ -1,6 +1,7 @@
 package main
 
 import "core:os/os2"
+import "core:os"
 import "core:fmt"
 import "core:strings"
 import "core:time"
@@ -32,6 +33,15 @@ prepare :: proc () {
     os2.make_directory("build")
 }
 
+be_annoying :: proc (cmd: ^[dynamic]string) {
+    append(cmd, "-strict-style")
+    append(cmd, "-vet-using-stmt")
+    append(cmd, "-vet-using-param")
+    append(cmd, "-vet-unused")
+    append(cmd, "-vet-shadowing")
+    append(cmd, "-vet-cast")
+}
+
 main :: proc () {
     prepare()
 
@@ -40,10 +50,12 @@ main :: proc () {
     append(&cmd, "build")
     append(&cmd, "src")
     append(&cmd, "-out:build/lenia")
-    append(&cmd, "-strict-style")
+    append(&cmd, "-o:speed")
     append(&cmd, "-error-pos-style:unix")
     append(&cmd, "-sanitize:address")
-    // append(&cmd, "-vet-unused-imports")
+    be_annoying(&cmd)
+    thread_count_str := fmt.aprintf("-thread-count:%d", os.processor_core_count())
+    append(&cmd, thread_count_str)
 
     run_cmd(cmd[:])
 }
