@@ -3,6 +3,7 @@ package main
 import "core:c"
 import rl "vendor:raylib"
 import "core:math/rand"
+import "core:fmt"
 
 Lenia :: struct {
     buffers: [2]rl.RenderTexture2D,
@@ -28,6 +29,7 @@ ShaderParamLocs :: struct {
 SimulationParams :: struct {
     kernel_radius: i32,
     kernel_peaks: [dynamic]f32,
+    kernel_core: KernelCoreType,
     growth_function: GrowthFunctionType,
     precision: c.int,
     grid_size: c.float,
@@ -41,6 +43,7 @@ GrowthFunctionType :: enum c.int {
     Rectangular,
     Polynomial,
     Exponential,
+    Direct,
 }
 
 KernelCoreType :: enum c.int {
@@ -76,6 +79,7 @@ lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
         kernel_radius = 5,
         precision = 1,
+        kernel_core = .RectangularGol,
         growth_function = .Polynomial,
         grid_size = 1000,
         time_step = 1,
@@ -85,6 +89,8 @@ lenia_get_default_params :: proc () -> SimulationParams {
     }
 
     append(&params.kernel_peaks, 1)
+    // append(&params.kernel_peaks, 0.8)
+    // append(&params.kernel_peaks, 0.1)
     return params
 }
 
@@ -104,6 +110,7 @@ lenia_draw :: proc (lenia: ^Lenia) {
     rl.BeginShaderMode(lenia.visual_shader)
         rl.DrawTexture(lenia.buffers[lenia.buffer_index].texture, 0, 0, rl.WHITE)
     rl.EndShaderMode()
+    rl.DrawTexture(lenia.kernel, 0 - lenia.kernel.width - 10, 0, rl.WHITE)
 }
 
 lenia_reset :: proc (lenia: ^Lenia) {
@@ -114,6 +121,11 @@ lenia_reset :: proc (lenia: ^Lenia) {
 lenia_change_growth_function :: proc (lenia: ^Lenia, growth_function: GrowthFunctionType) {
     lenia.parameters.growth_function = growth_function
     lenia_load_shaders(lenia)
+}
+
+lenia_change_kernel_core :: proc (lenia: ^Lenia, kernel_core: KernelCoreType) {
+    lenia.parameters.kernel_core = kernel_core
+    lenia_init_kernel(lenia)
 }
 
 lenia_update_mu :: proc (lenia: ^Lenia, new_val: c.float) {
@@ -233,17 +245,8 @@ lenia_load_shaders :: proc (lenia: ^Lenia) {
 
 @(private="file")
 lenia_init_kernel :: proc (lenia: ^Lenia) {
-    kernel := generate_kernel(lenia.parameters.kernel_radius, lenia.parameters.kernel_peaks[:], lenia.parameters.alpha)
-    kernel_image := rl.GenImageColor(kernel.width, kernel.height, rl.WHITE)
+    rl.UnloadTexture(lenia.kernel)
 
-    for h in 0..<kernel.height {
-        for w in 0..<kernel.width {
-            kernel_val := get_grid(kernel, w, h)
-            rl.ImageDrawPixel(&kernel_image, w, h, { u8(kernel_val * 255), 0, 0, 255 })
-        }
-    }
-
-    lenia.kernel = rl.LoadTextureFromImage(kernel_image)
-    delete(kernel.mat)
-    rl.UnloadImage(kernel_image)
+    lenia.kernel = kernel_make(
+        lenia.parameters.kernel_radius, lenia.parameters.kernel_peaks[:], lenia.parameters.kernel_core, lenia.parameters.alpha)
 }

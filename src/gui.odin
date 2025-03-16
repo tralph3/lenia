@@ -16,6 +16,7 @@ GUI_STATUS_BAR_HEIGHT: f32 : 20
 GUI_SIM_FPS_EDIT_MODE: c.bool = false
 GUI_PRECISION_EDIT_MODE: c.bool = false
 GUI_GROWTH_EDIT_MODE: c.bool = false
+GUI_KERNEL_EDIT_MODE: c.bool = false
 
 get_element_bounds :: proc () -> rl.Rectangle {
     return {
@@ -155,6 +156,32 @@ draw_gui :: proc () {
         delete(types)
     })
 
+    draw_element(proc () {
+        // TODO: cleanup this crap
+        types: [dynamic]string
+        for type in KernelCoreType {
+            append(&types, fmt.tprint(type))
+        }
+
+        str := strings.join(types[:], ";")
+        cstr := strings.clone_to_cstring(str)
+
+        bounds := get_element_bounds()
+        draw_label(bounds, "Kernel Core")
+
+        selected := c.int(SIMULATION_STATE.lenia.parameters.kernel_core)
+        if rl.GuiDropdownBox(bounds, cstr, &selected, GUI_KERNEL_EDIT_MODE) {
+            GUI_KERNEL_EDIT_MODE = !GUI_KERNEL_EDIT_MODE
+            if !GUI_KERNEL_EDIT_MODE {
+                lenia_change_kernel_core(&SIMULATION_STATE.lenia, KernelCoreType(selected))
+            }
+        }
+
+        delete(str)
+        delete(cstr)
+        delete(types)
+    })
+
     // prevent panning the camera when the mouse is on top of gui
     // elements
     if rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.Rectangle {
@@ -163,7 +190,6 @@ draw_gui :: proc () {
     }) {
         rl.GuiLock()
     }
-
     rl.GuiStatusBar(
         {
             0, f32(rl.GetRenderHeight()) - GUI_STATUS_BAR_HEIGHT,
