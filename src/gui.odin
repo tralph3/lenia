@@ -14,6 +14,7 @@ GUI_ELEMENT_INDEX: int = 0
 GUI_STATUS_BAR_HEIGHT: f32 : 20
 
 GUI_SIM_FPS_EDIT_MODE: c.bool = false
+GUI_SPATIAL_RESOLUTION_EDIT_MODE: c.bool = false
 GUI_STATE_RESOLUTION_EDIT_MODE: c.bool = false
 GUI_TEMPORAL_RESOLUTION_EDIT_MODE: c.bool = false
 GUI_GROWTH_EDIT_MODE: c.bool = false
@@ -81,6 +82,19 @@ draw_gui :: proc () {
 
     draw_element(proc () {
         bounds := get_element_bounds()
+        draw_label(bounds, "Spatial Resolution")
+
+        spatial_resolution := SIMULATION_STATE.lenia.parameters.spatial_resolution
+        if bool(rl.GuiSpinner(bounds, "", &spatial_resolution,
+                              1, 100, GUI_SPATIAL_RESOLUTION_EDIT_MODE)) {
+            GUI_SPATIAL_RESOLUTION_EDIT_MODE = !GUI_SPATIAL_RESOLUTION_EDIT_MODE
+        }
+
+        lenia_update_spatial_resolution(&SIMULATION_STATE.lenia, spatial_resolution)
+    })
+
+    draw_element(proc () {
+        bounds := get_element_bounds()
         draw_label(bounds, "State Resolution")
 
         state_resolution := SIMULATION_STATE.lenia.parameters.state_resolution
@@ -89,7 +103,7 @@ draw_gui :: proc () {
             GUI_STATE_RESOLUTION_EDIT_MODE = !GUI_STATE_RESOLUTION_EDIT_MODE
         }
 
-        lenia_update_precision(&SIMULATION_STATE.lenia, state_resolution)
+        lenia_update_state_resolution(&SIMULATION_STATE.lenia, state_resolution)
     })
 
     draw_element(proc () {

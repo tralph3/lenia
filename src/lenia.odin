@@ -3,7 +3,6 @@ package main
 import "core:c"
 import rl "vendor:raylib"
 import "core:math/rand"
-import "core:fmt"
 
 Lenia :: struct {
     buffers: [2]rl.RenderTexture2D,
@@ -88,7 +87,7 @@ lenia_get_default_params :: proc () -> SimulationParams {
     }
 
     append(&params.kernel_peaks, 1)
-    append(&params.kernel_peaks, 0.8)
+    // append(&params.kernel_peaks, 0.8)
     // append(&params.kernel_peaks, 0.1)
     return params
 }
@@ -158,11 +157,10 @@ lenia_update_temporal_resolution :: proc (lenia: ^Lenia, new_val: c.float) {
         return
     }
     lenia.parameters.temporal_resolution = new_val
-    fmt.println(lenia.parameters.temporal_resolution)
     lenia_update_shader_params(lenia)
 }
 
-lenia_update_precision :: proc (lenia: ^Lenia, new_val: c.int) {
+lenia_update_state_resolution :: proc (lenia: ^Lenia, new_val: c.int) {
     if new_val == lenia.parameters.state_resolution {
         return
     }
@@ -175,6 +173,16 @@ lenia_update_precision :: proc (lenia: ^Lenia, new_val: c.int) {
             lenia.parameters.state_resolution = new_val
         }
 
+    lenia_update_shader_params(lenia)
+}
+
+lenia_update_spatial_resolution :: proc (lenia: ^Lenia, new_val: i32) {
+    if new_val == lenia.parameters.spatial_resolution {
+        return
+    }
+
+    lenia.parameters.spatial_resolution = new_val
+    lenia_init_kernel(lenia)
     lenia_update_shader_params(lenia)
 }
 
