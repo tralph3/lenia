@@ -38,8 +38,11 @@ draw_element :: proc (draw: proc ()) {
 }
 
 draw_gui :: proc () {
-    // in case it was locked in the previous frame
-    rl.GuiUnlock()
+    if SIMULATION_STATE.panning {
+        rl.GuiLock()
+    } else {
+        rl.GuiUnlock()
+    }
 
     GUI_ELEMENT_INDEX = 0
 
@@ -196,18 +199,21 @@ draw_gui :: proc () {
         delete(types)
     })
 
-    // prevent panning the camera when the mouse is on top of gui
-    // elements
-    if rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.Rectangle {
-        GUI_ELEMENT_OFFSET, GUI_ELEMENT_OFFSET,
-        GUI_ELEMENT_SIZE.x, GUI_ELEMENT_OFFSET + f32(GUI_ELEMENT_INDEX) * (GUI_ELEMENT_SIZE.y + GUI_ELEMENT_OFFSET),
-    }) {
-        rl.GuiLock()
-    }
     rl.GuiStatusBar(
         {
             0, f32(rl.GetRenderHeight()) - GUI_STATUS_BAR_HEIGHT,
             f32(rl.GetRenderWidth()), GUI_STATUS_BAR_HEIGHT,
         },
         "SPACE - Run/stop simulation | R - Restart simulation | S - Do single simulation step | Hold LEFT SHIFT on sliders to snap to whole numbers")
+
+    // prevent panning the camera when the mouse is on top of gui
+    // elements
+    if !SIMULATION_STATE.panning && rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.Rectangle {
+        GUI_ELEMENT_OFFSET, GUI_ELEMENT_OFFSET,
+        GUI_ELEMENT_SIZE.x, GUI_ELEMENT_OFFSET + f32(GUI_ELEMENT_INDEX) * (GUI_ELEMENT_SIZE.y + GUI_ELEMENT_OFFSET),
+    }) {
+        SIMULATION_STATE.can_pan = false
+    } else {
+        SIMULATION_STATE.can_pan = true
+    }
 }

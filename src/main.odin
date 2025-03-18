@@ -4,10 +4,14 @@ import rl "vendor:raylib"
 import "core:time"
 
 calculate_camera_position :: proc (camera: ^rl.Camera2D) {
-    if !rl.GuiIsLocked() && (rl.IsMouseButtonDown(.LEFT)) {
+    if SIMULATION_STATE.can_pan && (rl.IsMouseButtonDown(.LEFT)) {
+        SIMULATION_STATE.panning = true
+
         delta := rl.GetMouseDelta()
         delta = delta * -1.0/camera.zoom
         camera.target += delta
+    } else {
+        SIMULATION_STATE.panning = false
     }
 
     wheel := rl.GetMouseWheelMove()
