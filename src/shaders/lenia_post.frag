@@ -12,7 +12,7 @@ float get_potential() {
             vec2 grid_coord = vec2((cell_x + (half_width - w)) / gridSize, (cell_y + (half_height - h)) / gridSize);
             float grid_val = texture(texture0, grid_coord).r;
             float kernel_val = texture(kernel, vec2(w / kernelSize, h / kernelSize)).r;
-            float weighted_value = grid_val * kernel_val;
+            float weighted_value = grid_val * kernel_val * 0.001;
             result += weighted_value;
         }
     }

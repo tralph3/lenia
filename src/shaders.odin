@@ -14,6 +14,7 @@ discretize_nullified := #load("shaders/discretize_nullified.frag")
 growth_rectangular   := #load("shaders/growth_rectangular.frag")
 growth_polynomial    := #load("shaders/growth_polynomial.frag")
 growth_exponential   := #load("shaders/growth_exponential.frag")
+growth_direct        := #load("shaders/growth_direct.frag")
 
 random               := #load("shaders/random.frag")
 
@@ -30,6 +31,8 @@ shader_lenia_make :: proc (growth: GrowthFunctionType, discretize: bool) -> rl.S
         strings.write_bytes(&builder, growth_polynomial)
     case .Exponential:
         strings.write_bytes(&builder, growth_exponential)
+    case .Direct:
+        strings.write_bytes(&builder, growth_direct)
     }
 
     if discretize {
@@ -40,7 +43,7 @@ shader_lenia_make :: proc (growth: GrowthFunctionType, discretize: bool) -> rl.S
 
     strings.write_bytes(&builder, shader_post)
 
-    shader, _ := strings.to_cstring(&builder)
+    shader := strings.to_cstring(&builder)
 
     return rl.LoadShaderFromMemory(nil, shader)
 }
@@ -51,7 +54,7 @@ shader_visual_make :: proc () -> rl.Shader {
 
     strings.write_bytes(&builder, visual)
 
-    shader, _ := strings.to_cstring(&builder)
+    shader := strings.to_cstring(&builder)
 
     return rl.LoadShaderFromMemory(nil, shader)
 }
@@ -62,7 +65,7 @@ shader_random_make :: proc () -> rl.Shader {
 
     strings.write_bytes(&builder, random)
 
-    shader, _ := strings.to_cstring(&builder)
+    shader := strings.to_cstring(&builder)
 
     return rl.LoadShaderFromMemory(nil, shader)
 }
