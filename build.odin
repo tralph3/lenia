@@ -55,8 +55,7 @@ make_build_cmd :: proc (pkg, out: string) -> Command {
     append(&cmd, "odin")
     append(&cmd, "build")
     append(&cmd, pkg)
-    out_str := fmt.aprintf("-out:%s", out)
-    append(&cmd, out_str)
+    append(&cmd, fmt.tprintf("-out:%s", out))
 
     return cmd
 }

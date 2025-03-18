@@ -43,7 +43,6 @@ GrowthFunctionType :: enum c.int {
     Rectangular,
     Polynomial,
     Exponential,
-    Direct,
 }
 
 KernelCoreType :: enum c.int {
@@ -78,11 +77,11 @@ lenia_destroy :: proc (lenia: ^Lenia) {
 lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
         spatial_resolution = 10,
-        state_resolution = 1,
+        state_resolution = 0,
         kernel_core = .Polynomial,
         growth_function = .Polynomial,
         grid_size = 1000,
-        temporal_resolution = 1,
+        temporal_resolution = 100,
         mu = 0.35,
         sigma = 0.07,
         alpha = 4,
@@ -116,7 +115,7 @@ lenia_draw :: proc (lenia: ^Lenia) {
 }
 
 lenia_reset :: proc (lenia: ^Lenia) {
-    lenia_fill_with_random_noise(lenia.buffers[0])
+    lenia_fill_with_random_noise(lenia)
     lenia.buffer_index = 0
 }
 
@@ -207,12 +206,17 @@ lenia_set_shader_param_locs :: proc (lenia: ^Lenia) {
 }
 
 @(private="file")
-lenia_fill_with_random_noise :: proc (buffer: rl.RenderTexture2D) {
-    random_shader := shader_random_make()
+lenia_fill_with_random_noise :: proc (lenia: ^Lenia) {
+    random_shader := shader_random_make(lenia.parameters.state_resolution > 0)
+    buffer := lenia.buffers[0]
 
     seed := c.float(rand.float32() - 0.5)
     seed_loc := rl.GetShaderLocation(random_shader, "seed")
     rl.SetShaderValue(random_shader, seed_loc, &seed, .FLOAT)
+
+    state_resolution: c.float = c.float(lenia.parameters.state_resolution)
+    state_resolution_loc := rl.GetShaderLocation(random_shader, "stateResolution")
+    rl.SetShaderValue(random_shader, state_resolution_loc, &state_resolution, .FLOAT)
 
     rl.BeginTextureMode(buffer)
         rl.BeginShaderMode(random_shader)
@@ -233,7 +237,7 @@ lenia_init_render_buffers :: proc (lenia: ^Lenia) {
     rl.SetTextureWrap(lenia.buffers[0].texture, .REPEAT)
     rl.SetTextureWrap(lenia.buffers[1].texture, .REPEAT)
 
-    lenia_fill_with_random_noise(lenia.buffers[0])
+    lenia_fill_with_random_noise(lenia)
 }
 
 @(private="file")
