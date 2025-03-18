@@ -6,9 +6,11 @@ import "core:fmt"
 import "core:strings"
 import "core:time"
 
-run_cmd :: proc (cmd: []string) {
-    str := strings.join(cmd, " ")
-    fmt.printfln("INFO: Running command '%s'", str)
+Command :: distinct [dynamic]string
+
+run_cmd :: proc (cmd: ^Command) {
+    str := strings.join(cmd[:], " ")
+    fmt.printfln("COMMAND: '%s'", str)
     delete(str)
 
     handle, _ := os2.process_start({
@@ -16,7 +18,9 @@ run_cmd :: proc (cmd: []string) {
         stdin = os2.stdin,
         stdout = os2.stdout,
         stderr = os2.stderr,
+
     })
+
     state, _ := os2.process_wait(handle)
     if state.exit_code != 0 {
         os2.exit(state.exit_code)
@@ -33,7 +37,11 @@ prepare :: proc () {
     os2.make_directory("build")
 }
 
-be_annoying :: proc (cmd: ^[dynamic]string) {
+optimization_flags :: proc (cmd: ^Command) {
+    append(cmd, "-o:speed")
+}
+
+strict_style_flags :: proc (cmd: ^Command) {
     append(cmd, "-strict-style")
     append(cmd, "-vet-using-stmt")
     append(cmd, "-vet-using-param")
@@ -42,20 +50,24 @@ be_annoying :: proc (cmd: ^[dynamic]string) {
     append(cmd, "-vet-cast")
 }
 
+make_build_cmd :: proc (pkg, out: string) -> Command {
+    cmd: Command
+    append(&cmd, "odin")
+    append(&cmd, "build")
+    append(&cmd, pkg)
+    out_str := fmt.aprintf("-out:%s", out)
+    append(&cmd, out_str)
+
+    return cmd
+}
+
 main :: proc () {
     prepare()
 
-    cmd: [dynamic]string
-    append(&cmd, "odin")
-    append(&cmd, "build")
-    append(&cmd, "src")
-    append(&cmd, "-out:build/lenia")
-    append(&cmd, "-o:speed")
+    cmd := make_build_cmd("src", "build/lenia")
     append(&cmd, "-error-pos-style:unix")
-    append(&cmd, "-sanitize:address")
-    be_annoying(&cmd)
-    thread_count_str := fmt.aprintf("-thread-count:%d", os.processor_core_count())
-    append(&cmd, thread_count_str)
+    strict_style_flags(&cmd)
+    // optimization_flags(&cmd)
 
-    run_cmd(cmd[:])
+    run_cmd(&cmd)
 }

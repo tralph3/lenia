@@ -2,7 +2,6 @@ package main
 
 import rl "vendor:raylib"
 import "core:time"
-import "core:fmt"
 
 calculate_camera_position :: proc (camera: ^rl.Camera2D) {
     if !rl.GuiIsLocked() && (rl.IsMouseButtonDown(.LEFT)) {

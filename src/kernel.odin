@@ -2,7 +2,6 @@ package main
 
 import "core:math"
 import rl "vendor:raylib"
-import "core:fmt"
 
 kernel_make :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType, alpha: f32 = 4) -> rl.Texture2D {
     dimensions: i32 = radius * 2 + 1  // ensure odd numbers to have a

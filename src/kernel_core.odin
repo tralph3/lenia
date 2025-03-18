@@ -1,7 +1,6 @@
 package main
 
 import "core:math"
-import "core:fmt"
 
 kernel_core_rectangular :: proc (polar_distance: f32) -> f32 {
     return f32(int(polar_distance >= 0.25 && polar_distance <= 0.75))

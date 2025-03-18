@@ -43,7 +43,7 @@ shader_lenia_make :: proc (growth: GrowthFunctionType, discretize: bool) -> rl.S
 
     strings.write_bytes(&builder, shader_post)
 
-    shader := strings.to_cstring(&builder)
+    shader, _ := strings.to_cstring(&builder)
 
     return rl.LoadShaderFromMemory(nil, shader)
 }
@@ -54,7 +54,7 @@ shader_visual_make :: proc () -> rl.Shader {
 
     strings.write_bytes(&builder, visual)
 
-    shader := strings.to_cstring(&builder)
+    shader, _ := strings.to_cstring(&builder)
 
     return rl.LoadShaderFromMemory(nil, shader)
 }
@@ -65,7 +65,7 @@ shader_random_make :: proc () -> rl.Shader {
 
     strings.write_bytes(&builder, random)
 
-    shader := strings.to_cstring(&builder)
+    shader, _ := strings.to_cstring(&builder)
 
     return rl.LoadShaderFromMemory(nil, shader)
 }
