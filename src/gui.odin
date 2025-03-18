@@ -14,7 +14,8 @@ GUI_ELEMENT_INDEX: int = 0
 GUI_STATUS_BAR_HEIGHT: f32 : 20
 
 GUI_SIM_FPS_EDIT_MODE: c.bool = false
-GUI_PRECISION_EDIT_MODE: c.bool = false
+GUI_STATE_RESOLUTION_EDIT_MODE: c.bool = false
+GUI_TEMPORAL_RESOLUTION_EDIT_MODE: c.bool = false
 GUI_GROWTH_EDIT_MODE: c.bool = false
 
 get_element_bounds :: proc () -> rl.Rectangle {
@@ -76,15 +77,28 @@ draw_gui :: proc () {
 
     draw_element(proc () {
         bounds := get_element_bounds()
-        draw_label(bounds, "Precision")
+        draw_label(bounds, "State Resolution")
 
-        precision := SIMULATION_STATE.lenia.parameters.precision
-        if bool(rl.GuiSpinner(bounds, "", &precision,
-                              0, 100, GUI_PRECISION_EDIT_MODE)) {
-            GUI_PRECISION_EDIT_MODE = !GUI_PRECISION_EDIT_MODE
+        state_resolution := SIMULATION_STATE.lenia.parameters.state_resolution
+        if bool(rl.GuiSpinner(bounds, "", &state_resolution,
+                              0, 100, GUI_STATE_RESOLUTION_EDIT_MODE)) {
+            GUI_STATE_RESOLUTION_EDIT_MODE = !GUI_STATE_RESOLUTION_EDIT_MODE
         }
 
-        lenia_update_precision(&SIMULATION_STATE.lenia, precision)
+        lenia_update_precision(&SIMULATION_STATE.lenia, state_resolution)
+    })
+
+    draw_element(proc () {
+        bounds := get_element_bounds()
+        draw_label(bounds, "Temporal Resolution")
+
+        temporal_resolution := i32(SIMULATION_STATE.lenia.parameters.temporal_resolution)
+        if bool(rl.GuiSpinner(bounds, "", &temporal_resolution,
+                              1, 10000, GUI_TEMPORAL_RESOLUTION_EDIT_MODE)) {
+            GUI_TEMPORAL_RESOLUTION_EDIT_MODE = !GUI_TEMPORAL_RESOLUTION_EDIT_MODE
+        }
+
+        lenia_update_temporal_resolution(&SIMULATION_STATE.lenia, f32(temporal_resolution))
     })
 
     draw_element(proc () {
