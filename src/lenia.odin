@@ -77,7 +77,7 @@ lenia_destroy :: proc (lenia: ^Lenia) {
 
 lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
-        spatial_resolution = 1,
+        spatial_resolution = 10,
         state_resolution = 1,
         kernel_core = .Polynomial,
         growth_function = .Polynomial,
@@ -89,7 +89,7 @@ lenia_get_default_params :: proc () -> SimulationParams {
     }
 
     append(&params.kernel_peaks, 1)
-    // append(&params.kernel_peaks, 0.8)
+    append(&params.kernel_peaks, 0.8)
     // append(&params.kernel_peaks, 0.1)
     return params
 }
@@ -110,7 +110,9 @@ lenia_draw :: proc (lenia: ^Lenia) {
     rl.BeginShaderMode(lenia.visual_shader)
         rl.DrawTexture(lenia.buffers[lenia.buffer_index].texture, 0, 0, rl.WHITE)
     rl.EndShaderMode()
-    rl.DrawTexture(lenia.kernel, 0 - lenia.kernel.width - 10, 0, rl.WHITE)
+    bounds := rl.Rectangle { -110, 0, 100, 100 }
+    draw_label(bounds, "Kernel")
+    rl.DrawTexturePro(lenia.kernel, {0, 0, f32(lenia.kernel.width), f32(lenia.kernel.height)}, bounds, rl.Vector2(0), 0, rl.WHITE)
 }
 
 lenia_reset :: proc (lenia: ^Lenia) {
