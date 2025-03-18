@@ -2,8 +2,8 @@ float get_potential() {
     float half_height = kernelSize * 0.5 - 0.5;
     float half_width = kernelSize * 0.5 - 0.5;
 
-    float cell_x = fragTexCoord.x * gridSize;
-    float cell_y = fragTexCoord.y * gridSize;
+    float cell_x = floor(fragTexCoord.x * gridSize);
+    float cell_y = floor(fragTexCoord.y * gridSize);
 
     float result = 0.0;
 

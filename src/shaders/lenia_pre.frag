@@ -15,6 +15,6 @@ uniform float mu;
 uniform float sigma;
 uniform float alpha;
 uniform float dt;
-uniform float P;
+uniform float stateResolution;
 
 out vec4 finalColor;
