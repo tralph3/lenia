@@ -6,7 +6,7 @@ import "core:c"
 import "core:strings"
 import "core:math"
 
-GUI_ELEMENT_SIZE :: [2]f32 { 200, 40 }
+GUI_ELEMENT_SIZE :: [2]f32 { 160, 40 }
 GUI_ELEMENT_OFFSET :: 20
 
 GUI_ELEMENT_INDEX: int = 0
@@ -19,6 +19,8 @@ GUI_STATE_RESOLUTION_EDIT_MODE: c.bool = false
 GUI_TEMPORAL_RESOLUTION_EDIT_MODE: c.bool = false
 GUI_GROWTH_EDIT_MODE: c.bool = false
 GUI_KERNEL_EDIT_MODE: c.bool = false
+
+GUI_FILTERING_ENABLED: c.bool = false
 
 get_element_bounds :: proc () -> rl.Rectangle {
     return {
@@ -65,6 +67,18 @@ draw_gui :: proc () {
         if rl.GuiButton(get_element_bounds(), "Step") || rl.IsKeyPressed(.S) {
             SIMULATION_STATE.running = false
             lenia_compute_simulation_step(&SIMULATION_STATE.lenia)
+        }
+    })
+
+    draw_element(proc () {
+        prev_state := GUI_FILTERING_ENABLED
+
+        bounds := get_element_bounds()
+        draw_label(bounds, "Enable Bilinear Filtering")
+        rl.GuiCheckBox(bounds, "", &GUI_FILTERING_ENABLED)
+
+        if prev_state != GUI_FILTERING_ENABLED {
+            lenia_toggle_texture_filtering(&SIMULATION_STATE.lenia)
         }
     })
 
@@ -149,7 +163,7 @@ draw_gui :: proc () {
 
     draw_element(proc () {
         bounds := get_element_bounds()
-        draw_label(bounds, rl.TextFormat("Sigma (Growth Radius): %2.2f", SIMULATION_STATE.lenia.parameters.sigma))
+        draw_label(bounds, rl.TextFormat("Sigma (Growth Radius): %2.3f", SIMULATION_STATE.lenia.parameters.sigma))
 
         sigma := SIMULATION_STATE.lenia.parameters.sigma
         rl.GuiSlider(bounds, "", "", &sigma, 0.0, 1.0)

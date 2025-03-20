@@ -14,7 +14,6 @@ discretize_nullified := #load("shaders/discretize_nullified.frag")
 growth_rectangular   := #load("shaders/growth_rectangular.frag")
 growth_polynomial    := #load("shaders/growth_polynomial.frag")
 growth_exponential   := #load("shaders/growth_exponential.frag")
-growth_direct        := #load("shaders/growth_direct.frag")
 
 random_pre           := #load("shaders/random_pre.frag")
 random_post          := #load("shaders/random_post.frag")

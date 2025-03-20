@@ -65,7 +65,7 @@ main :: proc () {
 
     cmd := make_build_cmd("src", "build/lenia")
     append(&cmd, "-error-pos-style:unix")
-    strict_style_flags(&cmd)
+    // strict_style_flags(&cmd)
     // optimization_flags(&cmd)
 
     run_cmd(&cmd)

@@ -4,5 +4,5 @@ float random (vec2 st) {
 }
 
 void main() {
-    finalColor = vec4(vec3(discretize(random(fragTexCoord.xy))), 1.0);
+    finalColor = vec4(discretize(random(fragTexCoord.xy)), vec2(0), 1.0);
 }

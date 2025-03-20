@@ -3,6 +3,7 @@ package main
 import "core:c"
 import rl "vendor:raylib"
 import "core:math/rand"
+import "core:fmt"
 
 Lenia :: struct {
     buffers: [2]rl.RenderTexture2D,
@@ -10,6 +11,7 @@ Lenia :: struct {
     kernel: rl.Texture2D,
     lenia_shader: rl.Shader,
     visual_shader: rl.Shader,
+    filter: rl.TextureFilter,
     parameters: SimulationParams,
     shader_param_locs: ShaderParamLocs,
 }
@@ -55,6 +57,7 @@ lenia_new :: proc (parameters: SimulationParams) -> Lenia {
     lenia := Lenia {
         parameters = parameters,
         buffer_index = 0,
+        filter = .POINT,
     }
 
     lenia_init_render_buffers(&lenia)
@@ -75,12 +78,12 @@ lenia_destroy :: proc (lenia: ^Lenia) {
 
 lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
-        spatial_resolution = 10,
-        state_resolution = 0,
-        kernel_core = .Polynomial,
-        growth_function = .Polynomial,
+        spatial_resolution = 1,
+        state_resolution = 1,
+        kernel_core = .RectangularGol,
+        growth_function = .Rectangular,
         grid_size = 1000,
-        temporal_resolution = 100,
+        temporal_resolution = 1,
         mu = 0.35,
         sigma = 0.07,
         alpha = 4,
@@ -105,9 +108,11 @@ lenia_compute_simulation_step :: proc (lenia: ^Lenia) {
 }
 
 lenia_draw :: proc (lenia: ^Lenia) {
+    rl.SetTextureFilter(lenia.buffers[lenia.buffer_index].texture, lenia.filter)
     rl.BeginShaderMode(lenia.visual_shader)
         rl.DrawTexture(lenia.buffers[lenia.buffer_index].texture, 0, 0, rl.WHITE)
     rl.EndShaderMode()
+    rl.SetTextureFilter(lenia.buffers[lenia.buffer_index].texture, .POINT)
     bounds := rl.Rectangle { -110, 0, 100, 100 }
     draw_label(bounds, "Kernel")
     rl.DrawTexturePro(lenia.kernel, {0, 0, f32(lenia.kernel.width), f32(lenia.kernel.height)}, bounds, rl.Vector2(0), 0, rl.WHITE)
@@ -149,6 +154,7 @@ lenia_update_alpha :: proc (lenia: ^Lenia, new_val: c.float) {
         return
     }
     lenia.parameters.alpha = new_val
+    lenia_init_kernel(lenia)
     lenia_update_shader_params(lenia)
 }
 
@@ -184,6 +190,14 @@ lenia_update_spatial_resolution :: proc (lenia: ^Lenia, new_val: i32) {
     lenia.parameters.spatial_resolution = new_val
     lenia_init_kernel(lenia)
     lenia_update_shader_params(lenia)
+}
+
+lenia_toggle_texture_filtering :: proc (lenia: ^Lenia) {
+    if lenia.filter == .POINT {
+        lenia.filter = .BILINEAR
+    } else {
+        lenia.filter = .POINT
+    }
 }
 
 @(private="file")
@@ -238,12 +252,15 @@ lenia_fill_with_random_noise :: proc (lenia: ^Lenia) {
 @(private="file")
 lenia_init_render_buffers :: proc (lenia: ^Lenia) {
     lenia.buffers = {
-        rl.LoadRenderTexture(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size)),
-        rl.LoadRenderTexture(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size)),
+        load_render_texture_with_format(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size), .UNCOMPRESSED_R32),
+        load_render_texture_with_format(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size), .UNCOMPRESSED_R32),
     }
 
     rl.SetTextureWrap(lenia.buffers[0].texture, .REPEAT)
+    rl.SetTextureFilter(lenia.buffers[0].texture, .POINT)
+
     rl.SetTextureWrap(lenia.buffers[1].texture, .REPEAT)
+    rl.SetTextureFilter(lenia.buffers[1].texture, .POINT)
 
     lenia_fill_with_random_noise(lenia)
 }
@@ -264,6 +281,6 @@ lenia_load_shaders :: proc (lenia: ^Lenia) {
 lenia_init_kernel :: proc (lenia: ^Lenia) {
     rl.UnloadTexture(lenia.kernel)
 
-    lenia.kernel = kernel_make(
+    lenia.kernel = kernel_new(
         lenia.parameters.spatial_resolution, lenia.parameters.kernel_peaks[:], lenia.parameters.kernel_core, lenia.parameters.alpha)
 }
