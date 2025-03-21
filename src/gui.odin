@@ -6,7 +6,7 @@ import "core:c"
 import "core:strings"
 import "core:math"
 
-GUI_ELEMENT_SIZE :: [2]f32 { 160, 40 }
+GUI_ELEMENT_SIZE :: [2]f32 { 250, 40 }
 GUI_ELEMENT_OFFSET :: 20
 
 GUI_ELEMENT_INDEX: int = 0
