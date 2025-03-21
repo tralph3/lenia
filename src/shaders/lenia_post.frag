@@ -1,6 +1,5 @@
 float get_potential() {
-    float half_height = floor(kernelSize * 0.5);
-    float half_width = floor(kernelSize * 0.5);
+    float half_size = (kernelSize - 1.0) * 0.5;
 
     float cell_x = fragTexCoord.x * gridSize;
     float cell_y = fragTexCoord.y * gridSize;
@@ -9,7 +8,7 @@ float get_potential() {
 
     for (float h = 0; h < kernelSize; h += 1.0) {
         for (float w = 0; w < kernelSize; w += 1.0) {
-            vec2 grid_coord = vec2((cell_x + (half_width - w)), (cell_y + (half_height - h))) / gridSize;
+            vec2 grid_coord = vec2((cell_x + (w - half_size)), (cell_y + (h - half_size))) / gridSize;
             float grid_val = texture(texture0, grid_coord).r;
             float kernel_val = texture(kernel, vec2(w, h) / kernelSize).r;
             float weighted_value = grid_val * kernel_val;
