@@ -39,6 +39,7 @@ prepare :: proc () {
 
 optimization_flags :: proc (cmd: ^Command) {
     append(cmd, "-o:speed")
+    append(cmd, "-disable-assert")
 }
 
 strict_style_flags :: proc (cmd: ^Command) {

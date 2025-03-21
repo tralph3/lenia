@@ -15,10 +15,15 @@ kernel_new :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType,
 
     for h in 0..<dimensions {
         for w in 0..<dimensions {
-            polar_distance := get_euclidean_distance({w, h}, kernel_center) * dx
-            if polar_distance > 1 {
-                polar_distance = 0
-            }
+            // the distance is clipped to a value close to but not
+            // exactly one for two reasons. it prevents calculating a
+            // peak index that is equal to the number of peaks, which
+            // would be an out of bounds access to the peaks
+            // array. secondly, it makes the fractional part be 99
+            // instead of 00, which is then passed to the kernel
+            // core. this makes it be closer to the "outer edge" of
+            // the peak, instead of the "inner edge"
+            polar_distance := min(get_euclidean_distance({w, h}, kernel_center) * dx, 0.9999999)
             shell_value := kernel_shell(polar_distance, peaks, kernel_core_type, alpha)
             kernel_matrix[dimensions * h + w] = shell_value
         }
@@ -32,6 +37,8 @@ kernel_new :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType,
 
 @(private="file")
 kernel_shell :: proc(polar_distance: f32, peaks: []f32, kernel_core_type: KernelCoreType, alpha: f32 = 4) -> f32 {
+    assert(polar_distance < 1)
+
     rank: f32 = f32(len(peaks))  // number of peaks in the shell
 
     br: f32 = rank * polar_distance          // scaling the rank will
@@ -42,12 +49,6 @@ kernel_shell :: proc(polar_distance: f32, peaks: []f32, kernel_core_type: Kernel
 
     index: int = int(math.floor(br)) // we get the whole part to get
                                      // the index
-    if index == int(rank) {
-        index -= 1              // prevents out of bounds access. this
-                                // condition will meet when the polar
-                                // distance is exactly one (matrix
-                                // corners)
-    }
 
     frac: f32 = br - math.floor(br) // we get the fractional part to
                                     // calculate the influence of the
