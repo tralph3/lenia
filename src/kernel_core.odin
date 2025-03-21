@@ -1,7 +1,6 @@
 package main
 
 import "core:math"
-import "core:fmt"
 import "core:testing"
 
 kernel_core_rectangular :: proc (polar_distance: f32) -> f32 {

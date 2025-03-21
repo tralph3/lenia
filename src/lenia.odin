@@ -3,7 +3,6 @@ package main
 import "core:c"
 import rl "vendor:raylib"
 import "core:math/rand"
-import "core:fmt"
 
 Lenia :: struct {
     buffers: [2]rl.RenderTexture2D,
