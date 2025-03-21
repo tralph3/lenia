@@ -3,6 +3,8 @@ package main
 import rl "vendor:raylib"
 import "core:strings"
 
+kernel               := #load("shaders/kernel.frag")
+
 visual               := #load("shaders/visual.frag")
 
 shader_pre           := #load("shaders/lenia_pre.frag")
@@ -70,6 +72,17 @@ shader_random_make :: proc (discretize: bool) -> rl.Shader {
     }
 
     strings.write_bytes(&builder, random_post)
+
+    shader, _ := strings.to_cstring(&builder)
+
+    return rl.LoadShaderFromMemory(nil, shader)
+}
+
+shader_kernel_make :: proc () -> rl.Shader {
+    builder := strings.builder_make()
+    defer strings.builder_destroy(&builder)
+
+    strings.write_bytes(&builder, kernel)
 
     shader, _ := strings.to_cstring(&builder)
 
