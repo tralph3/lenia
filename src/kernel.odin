@@ -23,8 +23,17 @@ kernel_new :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType,
             // instead of 00, which is then passed to the kernel
             // core. this makes it be closer to the "outer edge" of
             // the peak, instead of the "inner edge"
-            polar_distance := min(get_euclidean_distance({w, h}, kernel_center) * dx, 0.9999999)
-            shell_value := kernel_shell(polar_distance, peaks, kernel_core_type, alpha)
+            polar_distance := get_euclidean_distance({w, h}, kernel_center) * dx
+            shell_value: f32
+
+            if polar_distance == 1 {
+                polar_distance = 0.9999999
+            } else if polar_distance > 1 {
+                shell_value = 0
+            } else {
+                shell_value = kernel_shell(polar_distance, peaks, kernel_core_type, alpha)
+            }
+
             kernel_matrix[dimensions * h + w] = shell_value
         }
     }
