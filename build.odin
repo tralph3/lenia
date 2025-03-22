@@ -31,9 +31,15 @@ prepare :: proc () {
     if os2.is_file("build") {
         os2.remove("build")
     }
+
     if os2.is_file("build.bin") {
         os2.remove("build.bin")
     }
+
+    if os2.is_file("src.bin") {
+        os2.remove("src.bin")
+    }
+
     os2.make_directory("build")
 }
 
@@ -66,8 +72,8 @@ main :: proc () {
 
     cmd := make_build_cmd("src", "build/lenia")
     append(&cmd, "-error-pos-style:unix")
-    // strict_style_flags(&cmd)
-    // optimization_flags(&cmd)
+    strict_style_flags(&cmd)
+    optimization_flags(&cmd)
 
     run_cmd(&cmd)
 }
