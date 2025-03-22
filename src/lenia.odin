@@ -187,7 +187,7 @@ lenia_update_state_resolution :: proc (lenia: ^Lenia, new_val: c.int) {
 }
 
 lenia_update_spatial_resolution :: proc (lenia: ^Lenia, new_val: i32) {
-    if new_val == lenia.parameters.spatial_resolution {
+    if new_val == lenia.parameters.spatial_resolution || new_val < 1 {
         return
     }
 
