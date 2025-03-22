@@ -5,6 +5,8 @@ import "core:slice"
 import rl "vendor:raylib"
 
 kernel_new :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType, alpha: f32 = 4) -> (rl.Texture2D, f32) {
+    assert(radius >= 1)
+
     dimensions: i32 = radius * 2 + 1  // ensure odd numbers to have a
                                       // central cell
     dx: f32 = 1 / f32(radius)
