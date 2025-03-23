@@ -111,14 +111,14 @@ lenia_compute_simulation_step :: proc (lenia: ^Lenia) {
     lenia.buffer_index = 1 - lenia.buffer_index
 }
 
-lenia_draw :: proc (lenia: ^Lenia) {
-    draw_label({}, "Main Grid")
+lenia_draw :: proc (lenia: ^Lenia, origin: [2]f32) {
+    draw_label({origin.x, origin.y, 0, 0}, "Main Grid")
     rl.SetTextureFilter(lenia.buffers[lenia.buffer_index].texture, lenia.filter)
     rl.BeginShaderMode(lenia.visual_shader)
-        rl.DrawTexture(lenia.buffers[lenia.buffer_index].texture, 0, 0, rl.WHITE)
+        rl.DrawTexture(lenia.buffers[lenia.buffer_index].texture, i32(origin.x), i32(origin.y), rl.WHITE)
     rl.EndShaderMode()
     rl.SetTextureFilter(lenia.buffers[lenia.buffer_index].texture, .POINT)
-    bounds := rl.Rectangle { -110, 0, 100, 100 }
+    bounds := rl.Rectangle { origin.x - 110, origin.y, 100, 100 }
     draw_label(bounds, "Kernel")
     rl.BeginShaderMode(lenia.kernel_shader)
         rl.DrawTexturePro(lenia.kernel, {0, 0, f32(lenia.kernel.width), f32(lenia.kernel.height)}, bounds, rl.Vector2(0), 0, rl.WHITE)
@@ -232,7 +232,7 @@ lenia_update_shader_params :: proc (lenia: ^Lenia) {
 @(private="file")
 lenia_set_shader_param_locs :: proc (lenia: ^Lenia) {
     lenia.shader_param_locs.kernel           = rl.GetShaderLocation(lenia.lenia_shader,  "kernel")
-    lenia.shader_param_locs.max_kernel_val     = rl.GetShaderLocation(lenia.kernel_shader, "maxKernelVal")
+    lenia.shader_param_locs.max_kernel_val   = rl.GetShaderLocation(lenia.kernel_shader, "maxKernelVal")
     lenia.shader_param_locs.kernel_size      = rl.GetShaderLocation(lenia.lenia_shader,  "kernelSize")
     lenia.shader_param_locs.grid_size        = rl.GetShaderLocation(lenia.lenia_shader,  "gridSize")
     lenia.shader_param_locs.state_resolution = rl.GetShaderLocation(lenia.lenia_shader,  "stateResolution")

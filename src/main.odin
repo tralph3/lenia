@@ -50,7 +50,7 @@ main :: proc () {
         rl.BeginDrawing()
             rl.ClearBackground(rl.BLACK)
             rl.BeginMode2D(camera)
-                lenia_draw(lenia)
+                lenia_draw(lenia, {0, 0})
             rl.EndMode2D()
             draw_gui()
             rl.DrawFPS(0,0)
