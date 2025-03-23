@@ -9,6 +9,7 @@ Lenia :: struct {
     buffer_index: int,
     kernel: rl.Texture2D,
     kernel_shader: rl.Shader,
+    grid_size: i32,
     max_kernel_value: f32,
     lenia_shader: rl.Shader,
     visual_shader: rl.Shader,
@@ -35,7 +36,6 @@ SimulationParams :: struct {
     kernel_core: KernelCoreType,
     growth_function: GrowthFunctionType,
     state_resolution: c.int,
-    grid_size: c.float,
     temporal_resolution: c.float,
     mu: c.float,
     sigma: c.float,
@@ -59,14 +59,19 @@ lenia_new :: proc (parameters: SimulationParams) -> Lenia {
     lenia := Lenia {
         parameters = parameters,
         buffer_index = 0,
+        grid_size = 1000,
         filter = .POINT,
     }
 
-    lenia_init_render_buffers(&lenia)
-    lenia_init_kernel(&lenia)
-    lenia_load_shaders(&lenia)
+    lenia_init(&lenia)
 
     return lenia
+}
+
+lenia_init :: proc (lenia: ^Lenia) {
+    lenia_init_render_buffers(lenia)
+    lenia_init_kernel(lenia)
+    lenia_load_shaders(lenia)
 }
 
 lenia_destroy :: proc (lenia: ^Lenia) {
@@ -80,20 +85,17 @@ lenia_destroy :: proc (lenia: ^Lenia) {
 
 lenia_get_default_params :: proc () -> SimulationParams {
     params := SimulationParams {
-        spatial_resolution = 1,
-        state_resolution = 1,
-        kernel_core = .RectangularGol,
-        growth_function = .Rectangular,
-        grid_size = 1000,
-        temporal_resolution = 1,
-        mu = 0.35,
-        sigma = 0.07,
+        spatial_resolution = 13,
+        state_resolution = 0,
+        kernel_core = .Exponential,
+        growth_function = .Exponential,
+        temporal_resolution = 10,
+        mu = 0.3,
+        sigma = 0.045,
         alpha = 4,
     }
 
     append(&params.kernel_peaks, 1)
-    // append(&params.kernel_peaks, 0.8)
-    // append(&params.kernel_peaks, 0.1)
     return params
 }
 
@@ -102,7 +104,7 @@ lenia_compute_simulation_step :: proc (lenia: ^Lenia) {
         rl.BeginShaderMode(lenia.lenia_shader)
             rl.SetShaderValueTexture(lenia.lenia_shader, lenia.shader_param_locs.kernel, lenia.kernel)
             rl.DrawTextureRec(lenia.buffers[lenia.buffer_index].texture,
-                              { 0, 0, f32(lenia.parameters.grid_size), -f32(lenia.parameters.grid_size) }, { 0, 0 }, rl.WHITE)
+                              { 0, 0, f32(lenia.grid_size), -f32(lenia.grid_size) }, { 0, 0 }, rl.WHITE)
         rl.EndShaderMode()
     rl.EndTextureMode()
 
@@ -205,14 +207,20 @@ lenia_toggle_texture_filtering :: proc (lenia: ^Lenia) {
     }
 }
 
+lenia_update_params :: proc (lenia: ^Lenia, params: SimulationParams) {
+    lenia.parameters = params
+    lenia_init(lenia)
+}
+
 @(private="file")
 lenia_update_shader_params :: proc (lenia: ^Lenia) {
-    kernel_width := f32(lenia.kernel.width)
+    grid_size: c.float = c.float(lenia.grid_size)
+    kernel_width: c.float = c.float(lenia.kernel.width)
     state_resolution: c.float = c.float(lenia.parameters.state_resolution)
     dt: c.float = c.float(1 / lenia.parameters.temporal_resolution)
 
     rl.SetShaderValue(lenia.lenia_shader,  lenia.shader_param_locs.kernel_size, &kernel_width, .FLOAT)
-    rl.SetShaderValue(lenia.lenia_shader,  lenia.shader_param_locs.grid_size, &lenia.parameters.grid_size, .FLOAT)
+    rl.SetShaderValue(lenia.lenia_shader,  lenia.shader_param_locs.grid_size, &grid_size, .FLOAT)
     rl.SetShaderValue(lenia.lenia_shader,  lenia.shader_param_locs.state_resolution, &state_resolution, .FLOAT)
     rl.SetShaderValue(lenia.lenia_shader,  lenia.shader_param_locs.mu, &lenia.parameters.mu, .FLOAT)
     rl.SetShaderValue(lenia.lenia_shader,  lenia.shader_param_locs.sigma, &lenia.parameters.sigma, .FLOAT)
@@ -258,9 +266,16 @@ lenia_fill_with_random_noise :: proc (lenia: ^Lenia) {
 
 @(private="file")
 lenia_init_render_buffers :: proc (lenia: ^Lenia) {
+    if lenia.grid_size == lenia.buffers[0].texture.width {
+        return
+    }
+
+    rl.UnloadRenderTexture(lenia.buffers[0])
+    rl.UnloadRenderTexture(lenia.buffers[1])
+
     lenia.buffers = {
-        load_render_texture_with_format(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size), .UNCOMPRESSED_R32),
-        load_render_texture_with_format(i32(lenia.parameters.grid_size), i32(lenia.parameters.grid_size), .UNCOMPRESSED_R32),
+        load_render_texture_with_format(i32(lenia.grid_size), i32(lenia.grid_size), .UNCOMPRESSED_R32),
+        load_render_texture_with_format(i32(lenia.grid_size), i32(lenia.grid_size), .UNCOMPRESSED_R32),
     }
 
     rl.SetTextureWrap(lenia.buffers[0].texture, .REPEAT)

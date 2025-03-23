@@ -39,8 +39,8 @@ main :: proc () {
 
     camera := rl.Camera2D {
         target = rl.Vector2 {
-            f32(lenia.parameters.grid_size) / 2 - f32(rl.GetScreenWidth()) / 2,
-            f32(lenia.parameters.grid_size) / 2 - f32(rl.GetScreenHeight()) / 2,
+            f32(lenia.grid_size) / 2 - f32(rl.GetScreenWidth()) / 2,
+            f32(lenia.grid_size) / 2 - f32(rl.GetScreenHeight()) / 2,
         },
         zoom = 1,
     }
