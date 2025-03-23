@@ -110,6 +110,7 @@ lenia_compute_simulation_step :: proc (lenia: ^Lenia) {
 }
 
 lenia_draw :: proc (lenia: ^Lenia) {
+    draw_label({}, "Main Grid")
     rl.SetTextureFilter(lenia.buffers[lenia.buffer_index].texture, lenia.filter)
     rl.BeginShaderMode(lenia.visual_shader)
         rl.DrawTexture(lenia.buffers[lenia.buffer_index].texture, 0, 0, rl.WHITE)
