@@ -6,10 +6,14 @@ import "vendor:raylib/rlgl"
 load_render_texture_with_format :: proc (width, height: i32, format: rl.PixelFormat) -> rl.RenderTexture2D {
     target: rl.RenderTexture2D
 
-    target.id = rlgl.LoadFramebuffer(width, height)
+    target.id = rlgl.LoadFramebuffer()
+
 
     if (target.id > 0) {
         rlgl.EnableFramebuffer(target.id)
+
+        rlgl.SetFramebufferWidth(width)
+        rlgl.SetFramebufferHeight(height)
 
         target.texture = load_texture_with_format(width, height, format)
 

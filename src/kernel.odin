@@ -4,9 +4,8 @@ import "core:math"
 import "core:slice"
 import rl "vendor:raylib"
 
-kernel_new :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType, alpha: f32 = 4) -> (rl.Texture2D, f32) {
+kernel_new :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType, alpha: f32 = 4) -> (normalized: rl.Texture2D, unnormalized: rl.Texture2D) {
     assert(radius >= 1)
-
     dimensions: i32 = radius * 2 + 1  // ensure odd numbers to have a
                                       // central cell
     dx: f32 = 1 / f32(radius)
@@ -40,10 +39,12 @@ kernel_new :: proc (radius: i32, peaks: []f32, kernel_core_type: KernelCoreType,
         }
     }
 
-    // used for the kernel display shader
-    max_kernel_value := normalize_kernel(kernel_matrix)
+    unnormalized = kernel_matrix_to_texture(kernel_matrix, dimensions)
 
-    return kernel_matrix_to_texture(kernel_matrix, dimensions), max_kernel_value
+    normalize_kernel(kernel_matrix)
+    normalized = kernel_matrix_to_texture(kernel_matrix, dimensions)
+
+    return
 }
 
 @(private="file")

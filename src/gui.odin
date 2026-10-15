@@ -201,31 +201,33 @@ draw_gui :: proc () {
         delete(types)
     })
 
-    draw_element(proc () {
-        // TODO: cleanup this crap
-        types: [dynamic]string
-        for type in KernelCoreType {
-            append(&types, fmt.tprint(type))
-        }
-
-        str := strings.join(types[:], ";")
-        cstr := strings.clone_to_cstring(str)
-
-        bounds := get_element_bounds()
-        draw_label(bounds, "Kernel Core")
-
-        selected := c.int(SIMULATION_STATE.lenia.parameters.kernel_core)
-        if rl.GuiDropdownBox(bounds, cstr, &selected, GUI_KERNEL_EDIT_MODE) {
-            GUI_KERNEL_EDIT_MODE = !GUI_KERNEL_EDIT_MODE
-            if !GUI_KERNEL_EDIT_MODE {
-                lenia_change_kernel_core(&SIMULATION_STATE.lenia, KernelCoreType(selected))
+    if !GUI_GROWTH_EDIT_MODE {
+        draw_element(proc () {
+            // TODO: cleanup this crap
+            types: [dynamic]string
+            for type in KernelCoreType {
+                append(&types, fmt.tprint(type))
             }
-        }
 
-        delete(str)
-        delete(cstr)
-        delete(types)
-    })
+            str := strings.join(types[:], ";")
+            cstr := strings.clone_to_cstring(str)
+
+            bounds := get_element_bounds()
+            draw_label(bounds, "Kernel Core")
+
+            selected := c.int(SIMULATION_STATE.lenia.parameters.kernel_core)
+            if rl.GuiDropdownBox(bounds, cstr, &selected, GUI_KERNEL_EDIT_MODE) {
+                GUI_KERNEL_EDIT_MODE = !GUI_KERNEL_EDIT_MODE
+                if !GUI_KERNEL_EDIT_MODE {
+                    lenia_change_kernel_core(&SIMULATION_STATE.lenia, KernelCoreType(selected))
+                }
+            }
+
+            delete(str)
+            delete(cstr)
+            delete(types)
+        })
+    }
 
     rl.GuiStatusBar(
         {

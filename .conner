@@ -1,4 +1,5 @@
 ;;; -*- lisp-data -*-
 ((:name "Compile and run"
         :command "odin run build.odin -file && ./build/lenia"
-        :type "compile"))
+        :type "compile"
+        :environment ("DISPLAY=:0")))

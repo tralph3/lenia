@@ -1,6 +1,5 @@
 package main
 
-import "core:os/os2"
 import "core:os"
 import "core:fmt"
 import "core:strings"
@@ -13,34 +12,29 @@ run_cmd :: proc (cmd: ^Command) {
     fmt.printfln("COMMAND: '%s'", str)
     delete(str)
 
-    handle, _ := os2.process_start({
+    handle, _ := os.process_start({
         command = cmd[:],
-        stdin = os2.stdin,
-        stdout = os2.stdout,
-        stderr = os2.stderr,
+        stdin = os.stdin,
+        stdout = os.stdout,
+        stderr = os.stderr,
 
     })
 
-    state, _ := os2.process_wait(handle)
+    state, _ := os.process_wait(handle)
     if state.exit_code != 0 {
-        os2.exit(state.exit_code)
+        os.exit(state.exit_code)
     }
 }
 
 prepare :: proc () {
-    if os2.is_file("build") {
-        os2.remove("build")
+    if os.is_file("build") {
+        os.remove("build")
     }
 
-    if os2.is_file("build.bin") {
-        os2.remove("build.bin")
+    if os.is_file("build.bin") {
+        os.remove("build.bin")
     }
-
-    if os2.is_file("src.bin") {
-        os2.remove("src.bin")
-    }
-
-    os2.make_directory("build")
+    os.make_directory("build")
 }
 
 optimization_flags :: proc (cmd: ^Command) {
